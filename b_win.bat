@@ -13,6 +13,8 @@ if "%1"=="--release" (
     set CMAKE_BUILD_TYPE=Release
 )
 
+REM -- TEST 
+
 REM Create appropriate build folder
 set BUILD_DIR=build\%BUILD_TYPE%
 
