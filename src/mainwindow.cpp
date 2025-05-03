@@ -5,6 +5,7 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
+#include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0)
@@ -35,6 +36,14 @@ MainWindow::MainWindow(QWidget *parent)
     closeTabAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));
     fileMenu->addAction(closeTabAction);
     connect(closeTabAction, &QAction::triggered, this, &MainWindow::closeCurrentTab);
+    
+    // Add separator and Exit action
+    fileMenu->addSeparator();
+    
+    QAction *exitAction = new QAction("E&xit", this);
+    exitAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_F4));
+    fileMenu->addAction(exitAction);
+    connect(exitAction, &QAction::triggered, qApp, &QApplication::quit);
     
     // Create initial tab
     createNewTab();
