@@ -11,16 +11,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
+# Add the src directory to the include path
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+# Update source file paths to include src/ prefix
 set(SOURCES
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    editorwidget.cpp
-    editorwidget.h
-    linenumberarea.cpp
-    linenumberarea.h
-    codeeditor.cpp
-    codeeditor.h
+    src/main.cpp
+    src/mainwindow.cpp
+    src/mainwindow.h
+    src/editorwidget.cpp
+    src/editorwidget.h
+    src/linenumberarea.cpp
+    src/linenumberarea.h
+    src/codeeditor.cpp
+    src/codeeditor.h
 )
 
 add_executable(NotepadX

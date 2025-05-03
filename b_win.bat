@@ -27,7 +27,7 @@ mkdir %BUILD_DIR%
 cd %BUILD_DIR%
 
 echo Configuring project with CMake in %BUILD_TYPE% mode...
-cmake ..\..\src -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="%QT_PATH%\lib\cmake" -DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE%
+cmake ..\.. -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="%QT_PATH%\lib\cmake" -DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE%
 
 if errorlevel 1 (
     echo [ERROR] CMake configuration failed.
