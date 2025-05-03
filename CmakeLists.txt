@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(NotepadX LANGUAGES CXX)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
+
+set(SOURCES
+    main.cpp
+    mainwindow.cpp
+    mainwindow.h
+    editorwidget.cpp
+    editorwidget.h
+    linenumberarea.cpp
+    linenumberarea.h
+    codeeditor.cpp
+    codeeditor.h
+)
+
+add_executable(NotepadX
+    ${SOURCES}
+)
+
+target_link_libraries(NotepadX PRIVATE Qt6::Widgets)
