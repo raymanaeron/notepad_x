@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QApplication>
+#include <QDir>
 
 EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile("")
 {
@@ -50,7 +51,7 @@ bool EditorWidget::loadFile(const QString &fileName)
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, "Notepad X",
                              tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
+                             .arg(QDir::toNativeSeparators(fileName))
                              .arg(file.errorString()));
         return false;
     }
@@ -93,7 +94,7 @@ bool EditorWidget::saveFile(const QString &fileName)
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
         QMessageBox::warning(this, "Notepad X",
                            tr("Cannot write file %1:\n%2.")
-                           .arg(fileName)
+                           .arg(QDir::toNativeSeparators(fileName))
                            .arg(file.errorString()));
         return false;
     }

@@ -9,7 +9,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QCloseEvent>
-#include <QStatusBar> // Add this include for QStatusBar
+#include <QStatusBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0)
@@ -26,6 +26,9 @@ MainWindow::MainWindow(QWidget *parent)
     // Connect the tabCloseRequested signal
     connect(tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
     connect(tabWidget, &QTabWidget::currentChanged, this, &MainWindow::updateTabText);
+    
+    // Create status bar
+    statusBar();
     
     // Create menus and actions
     createMenus();
