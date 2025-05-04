@@ -403,8 +403,22 @@ void MainWindow::applyLightTheme()
     // Set light theme for the application
     qApp->setStyle("Fusion");
     
-    // Create and apply light theme palette
+    // Create and apply VS Code-like light theme palette
     QPalette lightPalette;
+    lightPalette.setColor(QPalette::Window, QColor(240, 240, 240));       // VS Code light window background
+    lightPalette.setColor(QPalette::WindowText, QColor(0, 0, 0));         // VS Code light text color
+    lightPalette.setColor(QPalette::Base, QColor(255, 255, 255));         // VS Code editor background (white)
+    lightPalette.setColor(QPalette::AlternateBase, QColor(245, 245, 245)); // Slightly darker
+    lightPalette.setColor(QPalette::ToolTipBase, QColor(255, 255, 255));  // Tooltip background
+    lightPalette.setColor(QPalette::ToolTipText, QColor(0, 0, 0));        // Tooltip text
+    lightPalette.setColor(QPalette::Text, QColor(0, 0, 0));               // Default text color
+    lightPalette.setColor(QPalette::Button, QColor(240, 240, 240));       // Button background
+    lightPalette.setColor(QPalette::ButtonText, QColor(0, 0, 0));         // Button text
+    lightPalette.setColor(QPalette::BrightText, QColor(0, 0, 0));         // Bright text
+    lightPalette.setColor(QPalette::Link, QColor(0, 122, 204));           // VS Code blue
+    lightPalette.setColor(QPalette::Highlight, QColor(185, 215, 255));    // VS Code light blue selection
+    lightPalette.setColor(QPalette::HighlightedText, QColor(0, 0, 0));    // Text on selection
+    
     qApp->setPalette(lightPalette);
     
     // Update theme tracking state
