@@ -30,40 +30,32 @@ export PATH="${QT_PATH}/bin:$PATH"
 
 # Deploy Qt dependencies
 echo "Deploying Qt runtime dependencies..."
-macdeployqt NotepadX.app -verbose=2
+macdeployqt NotepadX.app -verbose=1
 
-# Update Info.plist with proper metadata
+# Update Info.plist with proper metadata - simplified approach
 echo "Updating application metadata..."
 PLIST="NotepadX.app/Contents/Info.plist"
 
-# Use PlistBuddy to modify Info.plist
-/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.elysianedge.notepadx" $PLIST
-/usr/libexec/PlistBuddy -c "Set :CFBundleName NotepadX" $PLIST
-/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName NotepadX" $PLIST
-/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.0" $PLIST
-/usr/libexec/PlistBuddy -c "Set :CFBundleVersion 1.0.0" $PLIST
-/usr/libexec/PlistBuddy -c "Set :NSHumanReadableCopyright Copyright © 2023 Elysian Edge LLC" $PLIST
-
-# Create DMG installer
-echo "Creating DMG installer..."
-# Install create-dmg if needed: brew install create-dmg
-if command -v create-dmg &> /dev/null; then
-    create-dmg \
-        --volname "NotepadX" \
-        --volicon "../../icons/appicons/app_icon_mac.icns" \
-        --window-pos 200 120 \
-        --window-size 600 400 \
-        --icon-size 100 \
-        --icon "NotepadX.app" 150 190 \
-        --hide-extension "NotepadX.app" \
-        --app-drop-link 450 190 \
-        "NotepadX-1.0.0.dmg" \
-        "NotepadX.app"
-else
-    # Fallback to hdiutil
-    echo "create-dmg not found, using hdiutil for simple DMG creation..."
-    hdiutil create -volname "NotepadX" -srcfolder "NotepadX.app" -ov -format UDZO "NotepadX-1.0.0.dmg"
+# Check if the plist file exists
+if [ ! -f "$PLIST" ]; then
+    echo "ERROR: Info.plist not found at $PLIST"
+    exit 1
 fi
 
-echo "[SUCCESS] macOS installer created: NotepadX-1.0.0.dmg"
+# Try to modify some basic properties
+echo "Setting CFBundleIdentifier..."
+defaults write "$PLIST" CFBundleIdentifier "com.elysianedge.notepadx"
+
+echo "Setting CFBundleName..."
+defaults write "$PLIST" CFBundleName "NotepadX"
+
+# Fix permissions for executable
+echo "Setting executable permissions..."
+chmod +x "NotepadX.app/Contents/MacOS/NotepadX"
+
+echo "Build and app preparation complete!"
+echo ""
+echo "To create the DMG installer, run the create_dmg.sh script."
+
+# Return to original directory
 cd ../..
