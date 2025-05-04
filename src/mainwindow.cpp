@@ -355,6 +355,10 @@ void MainWindow::createStatusBar()
     lineColumnLabel->setMinimumWidth(150);
     statusBar()->addPermanentWidget(lineColumnLabel);
     
+    zoomLabel = new QLabel("Zoom: 100%", this);
+    zoomLabel->setMinimumWidth(100);
+    statusBar()->addPermanentWidget(zoomLabel);
+    
     modifiedLabel = new QLabel("", this);
     modifiedLabel->setMinimumWidth(80);
     statusBar()->addPermanentWidget(modifiedLabel);
@@ -372,6 +376,7 @@ void MainWindow::updateStatusBar()
     EditorWidget *editor = currentEditor();
     if (!editor) {
         lineColumnLabel->setText("Line: 1, Column: 1");
+        zoomLabel->setText("Zoom: 100%");
         modifiedLabel->setText("");
         filenameLabel->setText("");
         return;
@@ -391,6 +396,11 @@ void MainWindow::updateStatusBar()
     } else {
         filenameLabel->setText(filename);
     }
+    
+    // Update zoom level
+    int zoomLevel = editor->getCurrentZoomLevel();
+    int zoomPercent = 100 + (zoomLevel * 10); // Assuming each zoom level is 10%
+    zoomLabel->setText(QString("Zoom: %1%").arg(zoomPercent));
     
     // Update cursor position (from CodeEditor)
     CodeEditor* codeEditor = editor->editor();
@@ -446,6 +456,13 @@ void MainWindow::createNewTab()
         }
     });
     
+    // Connect zoom level changed signal to update status bar
+    connect(editor, &EditorWidget::zoomLevelChanged, this, [=](int) {
+        if (editor == currentEditor()) {
+            updateStatusBar();
+        }
+    });
+    
     // Set the new tab as the current tab
     tabWidget->setCurrentIndex(index);
     editor->setFocus();
@@ -456,24 +473,6 @@ void MainWindow::createNewTab()
     } else {
         editor->setLightTheme();
     }
-    
-    // Apply current zoom level to the new tab
-    editor->setZoomLevel(currentZoomLevel);
-    
-    // Connect the zoomLevelChanged signal
-    connect(editor, &EditorWidget::zoomLevelChanged, this, [this](int level) {
-        currentZoomLevel = level;
-        // Apply new zoom level to all editors
-        for (int i = 0; i < tabWidget->count(); ++i) {
-            EditorWidget *ed = qobject_cast<EditorWidget*>(tabWidget->widget(i));
-            if (ed && ed->getCurrentZoomLevel() != level) {
-                ed->setZoomLevel(level);
-            }
-        }
-        // Save the zoom level in settings
-        QSettings settings("NotepadX", "Editor");
-        settings.setValue("zoomLevel", currentZoomLevel);
-    });
     
     // Update the language menu to reflect the current editor
     updateLanguageMenu();
@@ -558,9 +557,22 @@ bool MainWindow::openFileHelper(const QString &fileName)
                             QString("Untitled %1").arg(untitledCount) : 
                             QFileInfo(fileName).fileName();
             tabWidget->setTabText(tabWidget->indexOf(editor), tabText);
+            
+            // Update status bar if this is the current editor
+            if (editor == currentEditor()) {
+                updateStatusBar();
+            }
         });
         
         connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
+        
+        // Connect zoom level changed signal to update status bar
+        connect(editor, &EditorWidget::zoomLevelChanged, this, [=](int) {
+            if (editor == currentEditor()) {
+                updateStatusBar();
+            }
+        });
+        
         statusBar()->showMessage(tr("File loaded"), 2000);
         
         // Apply the active theme to this newly opened file
@@ -570,23 +582,8 @@ bool MainWindow::openFileHelper(const QString &fileName)
             editor->setLightTheme();
         }
         
-        // Apply current zoom level to the new tab
-        editor->setZoomLevel(currentZoomLevel);
-        
-        // Connect the zoomLevelChanged signal
-        connect(editor, &EditorWidget::zoomLevelChanged, this, [this](int level) {
-            currentZoomLevel = level;
-            // Apply new zoom level to all editors
-            for (int i = 0; i < tabWidget->count(); ++i) {
-                EditorWidget *ed = qobject_cast<EditorWidget*>(tabWidget->widget(i));
-                if (ed && ed->getCurrentZoomLevel() != level) {
-                    ed->setZoomLevel(level);
-                }
-            }
-            // Save the zoom level in settings
-            QSettings settings("NotepadX", "Editor");
-            settings.setValue("zoomLevel", currentZoomLevel);
-        });
+        // Connect editor signals for cursor position tracking
+        connectEditorSignals();
         
         return true;
     } else {
@@ -935,9 +932,6 @@ void MainWindow::readSettings()
         applyLightTheme();
     }
     
-    // Restore zoom level
-    currentZoomLevel = settings.value("zoomLevel", 0).toInt();
-    
     // Only restore session files if that setting is enabled
     bool restoreSession = settings.value("restoreSession", true).toBool();
     if (restoreSession) {
@@ -1015,9 +1009,6 @@ void MainWindow::writeSettings()
     
     // Save recent files
     settings.setValue("recentFiles", recentFiles);
-    
-    // Save zoom level
-    settings.setValue("zoomLevel", currentZoomLevel);
     
     // Save open files
     int validFileCount = 0;
@@ -1132,6 +1123,7 @@ void MainWindow::zoomIn()
     EditorWidget *editor = currentEditor();
     if (editor) {
         editor->zoomIn();
+        updateStatusBar();
     }
 }
 
@@ -1140,6 +1132,7 @@ void MainWindow::zoomOut()
     EditorWidget *editor = currentEditor();
     if (editor) {
         editor->zoomOut();
+        updateStatusBar();
     }
 }
 
@@ -1148,5 +1141,6 @@ void MainWindow::resetZoom()
     EditorWidget *editor = currentEditor();
     if (editor) {
         editor->resetZoom();
+        updateStatusBar();
     }
 }

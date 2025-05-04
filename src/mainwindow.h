@@ -72,6 +72,7 @@ private:
     QLabel *lineColumnLabel;  // Shows line and column position
     QLabel *modifiedLabel;    // Shows modified status
     QLabel *filenameLabel;    // Shows filename or path
+    QLabel *zoomLabel;        // Shows current zoom level
     
     // Dialogs
     FindReplaceDialog *findReplaceDialog;
