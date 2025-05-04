@@ -5,6 +5,7 @@
 #include <QtSvg> // Add SVG module header
 #include <QDir>
 #include <QFile>
+#include <QIcon>
 
 #ifdef Q_OS_WIN
 // Windows-specific code for GUI application
@@ -76,9 +77,73 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationName("Notepad X");
     QApplication::setApplicationVersion("1.0.0");
     
+    // Load appropriate app icon based on platform
+    QIcon appIcon;
+    
+#ifdef Q_OS_WIN
+    // Windows-specific icon will be loaded from resource,
+    // but also try direct file for debugging/fallback
+    QString icoPath = QDir(QCoreApplication::applicationDirPath()).filePath("icons/appicons/app_icon_win.ico");
+    
+    if (QFile::exists(icoPath)) {
+        appIcon = QIcon(icoPath);
+        qDebug() << "Loaded Windows ICO icon from filesystem:" << icoPath;
+    } else {
+        qWarning() << "Could not find Windows app icon at:" << icoPath;
+        // The icon should still be loaded from the embedded resource
+    }
+    
+    // If no icon was loaded, Windows will use the one from the RC file
+#elif defined(Q_OS_MAC)
+    // macOS-specific icon - use high-resolution icon for Retina displays
+    QString appIconPath = "icons/appicons/notepadx_mac@2x.png";
+    QString localPath = QDir(QCoreApplication::applicationDirPath()).filePath(appIconPath);
+    if (QFile::exists(localPath)) {
+        appIcon = QIcon(localPath);
+        qDebug() << "Loaded app icon from filesystem:" << localPath;
+    } else {
+        qWarning() << "Could not find app icon at:" << localPath;
+        
+        // Try using working directory as fallback
+        localPath = QDir(QDir::currentPath()).filePath(appIconPath);
+        if (QFile::exists(localPath)) {
+            appIcon = QIcon(localPath);
+            qDebug() << "Loaded app icon from current directory:" << localPath;
+        }
+    }
+#else
+    // Linux/other platforms icon
+    QString appIconPath = "icons/appicons/notepadx_linux.png";
+    QString localPath = QDir(QCoreApplication::applicationDirPath()).filePath(appIconPath);
+    if (QFile::exists(localPath)) {
+        appIcon = QIcon(localPath);
+        qDebug() << "Loaded app icon from filesystem:" << localPath;
+    } else {
+        qWarning() << "Could not find app icon at:" << localPath;
+        
+        // Try using working directory as fallback
+        localPath = QDir(QDir::currentPath()).filePath(appIconPath);
+        if (QFile::exists(localPath)) {
+            appIcon = QIcon(localPath);
+            qDebug() << "Loaded app icon from current directory:" << localPath;
+        }
+    }
+#endif
+    
+    // If icon was loaded successfully, set it as the application icon
+    if (!appIcon.isNull()) {
+        QApplication::setWindowIcon(appIcon);
+    }
+    
 #ifdef Q_OS_MAC
     // macOS-specific settings
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
+    
+    // Enable high DPI support for better icon rendering on Retina displays
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    
+    // For macOS, we don't need to do anything special for toolbar icons
+    // They will be managed by the SVG icon provider system
 #endif
     
     MainWindow window;

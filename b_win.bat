@@ -20,10 +20,10 @@ REM Create appropriate build folder
 set BUILD_DIR=build\%BUILD_TYPE%
 
 REM Clean old build folder if it exists
-if exist %BUILD_DIR% (
-    echo Removing existing %BUILD_TYPE% build directory...
-    rmdir /S /Q %BUILD_DIR%
-)
+REM if exist %BUILD_DIR% (
+REM    echo Removing existing %BUILD_TYPE% build directory...
+REM    rmdir /S /Q %BUILD_DIR%
+REM )
 
 echo Creating %BUILD_TYPE% build directory...
 mkdir %BUILD_DIR%
@@ -50,10 +50,37 @@ if errorlevel 1 (
 REM Copy icons folder to build directory
 echo Copying icons to executable directory...
 if not exist icons mkdir icons
+if not exist icons\appicons mkdir icons\appicons
+
+REM Copy the app icon to icons directory
+echo Copying Windows app icon...
+xcopy /Y "..\..\icons\appicons\app_icon_win.ico" "icons\appicons\"
 xcopy /Y /E /I "..\..\icons" "icons\"
+
+REM Explicitly verify ICO file was copied
+echo Checking app icon...
+if exist icons\appicons\app_icon_win.ico (
+    echo Windows app icon found at icons\appicons\app_icon_win.ico
+) else (
+    echo WARNING: Windows app icon not found, app will use default icon
+)
 
 REM Verify icons were copied
 dir icons\*.svg
+
+REM Create appicons directory
+echo Copying application icons...
+if not exist icons\appicons mkdir icons\appicons
+xcopy /Y /E /I "..\..\icons\appicons" "icons\appicons\"
+
+REM For Windows, also copy PNG as ICO if ICO doesn't exist
+if exist icons\appicons\notepadx_win.png (
+    if not exist icons\appicons\notepadx_win.ico (
+        echo Creating ICO file from PNG for Windows application icon...
+        copy icons\appicons\notepadx_win.png icons\appicons\notepadx_win.ico
+        echo Note: For best results, create a proper .ico file with multiple resolutions
+    )
+)
 
 echo Deploying Qt runtime dependencies with windeployqt...
 REM Add Qt bin directory to PATH temporarily for windeployqt to find the platform plugins
