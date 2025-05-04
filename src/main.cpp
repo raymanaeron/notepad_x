@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QFontDatabase>
 #include <QDebug>
+#include <QtSvg> // Add SVG module header
 
 #ifdef Q_OS_WIN
 // Windows-specific code for GUI application

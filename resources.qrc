@@ -1,5 +1,13 @@
 <RCC>
     <qresource prefix="/">
         <file>fonts/fontawesome-webfont.ttf</file>
+        <file>icons/new.svg</file>
+        <file>icons/open.svg</file>
+        <file>icons/save.svg</file>
+        <file>icons/cut.svg</file>
+        <file>icons/copy.svg</file>
+        <file>icons/paste.svg</file>
+        <file>icons/undo.svg</file>
+        <file>icons/redo.svg</file>
     </qresource>
 </RCC>

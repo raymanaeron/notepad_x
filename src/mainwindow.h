@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTabWidget>
 #include <QSettings>
+#include "svgiconprovider.h"
 
 class EditorWidget;
 class QActionGroup;
