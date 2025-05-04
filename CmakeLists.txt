@@ -130,3 +130,12 @@ target_link_libraries(NotepadX PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Svg
 )
+
+# Installer configuration
+# Include platform-specific installer configs
+include(cmake/windows_installer.cmake OPTIONAL)
+include(cmake/macos_installer.cmake OPTIONAL)
+include(cmake/linux_installer.cmake OPTIONAL)
+
+# Enable CPack
+include(CPack)

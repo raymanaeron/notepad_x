@@ -1,0 +1,11 @@
+NotepadX is a cross-platform text editor with syntax highlighting support 
+for multiple programming languages. It features a clean, modern interface 
+with both light and dark themes, tabbed editing, and powerful find and 
+replace functionality.
+
+Key features:
+- Syntax highlighting for multiple languages
+- Light and dark themes
+- Multi-tab interface
+- Find and replace with regular expressions
+- Line numbering and current line highlighting

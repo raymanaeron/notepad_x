@@ -14,16 +14,8 @@ if "%1"=="--release" (
     set CMAKE_BUILD_TYPE=Release
 )
 
-REM -- TEST 
-
 REM Create appropriate build folder
 set BUILD_DIR=build\%BUILD_TYPE%
-
-REM Clean old build folder if it exists
-REM if exist %BUILD_DIR% (
-REM    echo Removing existing %BUILD_TYPE% build directory...
-REM    rmdir /S /Q %BUILD_DIR%
-REM )
 
 echo Creating %BUILD_TYPE% build directory...
 mkdir %BUILD_DIR%
