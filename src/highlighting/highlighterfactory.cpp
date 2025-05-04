@@ -17,6 +17,7 @@ HighlighterFactory::HighlighterFactory()
     m_languages["HTML"] = new HtmlLanguage();
     m_languages["Java"] = new JavaLanguage();
     m_languages["JavaScript"] = new JavaScriptLanguage();
+    m_languages["Kotlin"] = new KotlinLanguage();
     m_languages["Markup"] = new MarkupLanguage();
     m_languages["Python"] = new PythonLanguage();
     m_languages["Rust"] = new RustLanguage();

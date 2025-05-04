@@ -13,6 +13,7 @@
 #include "languages/htmlhighlighter.h"
 #include "languages/csshighlighter.h"
 #include "languages/markuphighlighter.h"
+#include "languages/kotlinhighlighter.h"
 #include <QMap>
 #include <QFileInfo>
 
