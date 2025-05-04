@@ -5,140 +5,137 @@
 set -e
 
 # Set Qt installation path - adjust according to your installation
-# For Linux, this may vary significantly based on distribution
 QT_PATH="/opt/Qt/6.9.0/gcc_64"
 # Use system Qt if installed by the package manager
 if [ ! -d "$QT_PATH" ]; then
     QT_PATH="/usr"
 fi
 
-# Determine build type (debug or release)
-BUILD_TYPE="release"
-CMAKE_BUILD_TYPE="Release"
-
-if [ "$1" == "--debug" ]; then
-    BUILD_TYPE="debug"
-    CMAKE_BUILD_TYPE="Debug"
-fi
-
-# Create appropriate build folder
-BUILD_DIR="build/${BUILD_TYPE}"
-
-echo "Creating ${BUILD_TYPE} build directory..."
+# Create build folder for installer
+BUILD_DIR="build/installer"
+echo "Creating build directory for installer..."
 mkdir -p "${BUILD_DIR}"
 cd "${BUILD_DIR}"
-
-echo "Configuring project with CMake in ${BUILD_TYPE} mode..."
-# For Linux we may need to specify a different generator depending on the system
-if [ -f "/usr/bin/ninja" ]; then
-    # Use Ninja if available (faster builds)
-    cmake ../.. -G Ninja -DCMAKE_PREFIX_PATH="${QT_PATH}/lib/cmake" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    BUILD_COMMAND="ninja"
-else
-    # Otherwise use standard Makefiles
-    cmake ../.. -DCMAKE_PREFIX_PATH="${QT_PATH}/lib/cmake" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    BUILD_COMMAND="make -j$(nproc)"
-fi
-
-echo "Building project with ${BUILD_COMMAND} in ${BUILD_TYPE} mode..."
-$BUILD_COMMAND
-
-# Create necessary directories for resources
-echo "Setting up application resources..."
-mkdir -p "icons"
-mkdir -p "icons/appicons"
-mkdir -p "fonts"
-
-# Copy resources using rsync for better handling of directories
-echo "Copying resources to executable directory..."
-if [ -d "../../icons" ]; then
-    rsync -av "../../icons/" "icons/"
-fi
-
-# Copy fonts if they exist
-if [ -d "../../fonts" ]; then
-    rsync -av "../../fonts/" "fonts/"
-fi
-
-# Verify icon was copied
-echo "Checking app icon..."
-if [ -f "icons/appicons/app_icon_linux.png" ]; then
-    echo "Linux app icon found at icons/appicons/app_icon_linux.png"
-else
-    echo "WARNING: Linux app icon not found, app will use default icon"
-fi
-
-# Check if we need to deploy Qt dependencies
-if [ "$QT_PATH" != "/usr" ]; then
-    echo "Deploying Qt runtime dependencies..."
-    # Add Qt bin directory to PATH temporarily
-    export PATH="${QT_PATH}/bin:$PATH"
-    export LD_LIBRARY_PATH="${QT_PATH}/lib:$LD_LIBRARY_PATH"
-    
-    # Copy plugins and libs
-    mkdir -p platforms
-    mkdir -p imageformats
-    
-    echo "Manually copying essential Qt plugins..."
-    cp "${QT_PATH}/plugins/platforms/libqxcb.so" platforms/
-    cp "${QT_PATH}/plugins/imageformats/libqsvg.so" imageformats/
-
-    # For more comprehensive dependency bundling, a more sophisticated approach is needed
-    # This is a starting point and might need adjustment based on your Linux distribution
-fi
-
-# Create build folder for installer
-INSTALLER_BUILD_DIR="build/installer"
-echo "Creating build directory for installer..."
-mkdir -p "${INSTALLER_BUILD_DIR}"
-cd "${INSTALLER_BUILD_DIR}"
 
 # Configure project with CMake for installer
 echo "Configuring project for installer..."
 cmake ../.. -DCMAKE_PREFIX_PATH="${QT_PATH}/lib/cmake" -DCMAKE_BUILD_TYPE=Release
 
 echo "Building project..."
-# Use multiple cores for faster build
 make -j$(nproc)
 
 # Make sure necessary directories exist for resources
 echo "Setting up resource directories..."
-mkdir -p "icons"
-mkdir -p "icons/appicons"
+mkdir -p "AppDir/usr/bin"
+mkdir -p "AppDir/usr/share/applications"
+mkdir -p "AppDir/usr/share/icons/hicolor/256x256/apps"
+mkdir -p "AppDir/usr/share/metainfo"
 
-# Copy resources using rsync for better handling of directories
-echo "Copying resources..."
-rsync -av "../../icons/" "icons/"
+# Copy executable and resources
+echo "Copying application files..."
+cp "NotepadX" "AppDir/usr/bin/"
+cp -r "../../icons" "AppDir/usr/share/"
 
-# Add Qt bin directory to PATH temporarily
-export PATH="${QT_PATH}/bin:$PATH"
-export LD_LIBRARY_PATH="${QT_PATH}/lib:$LD_LIBRARY_PATH"
+# Create desktop file
+echo "Creating desktop file..."
+cat > "AppDir/usr/share/applications/notepadx.desktop" << EOF
+[Desktop Entry]
+Type=Application
+Name=NotepadX
+GenericName=Text Editor
+Comment=A cross-platform text editor
+Icon=notepadx
+Exec=NotepadX %f
+Terminal=false
+Categories=Utility;TextEditor;Development;Qt;
+MimeType=text/plain;
+Keywords=Text;Editor;Notepad;
+X-AppImage-Name=NotepadX
+X-AppImage-Version=1.0.0
+X-AppImage-Arch=x86_64
+EOF
 
-# Deploy Qt dependencies (using linuxdeployqt if available)
-echo "Deploying Qt runtime dependencies..."
-if command -v linuxdeployqt &> /dev/null; then
-    linuxdeployqt NotepadX -appimage -verbose=2
+# Copy icon for desktop integration
+cp "../../icons/appicons/app_icon_linux.png" "AppDir/usr/share/icons/hicolor/256x256/apps/notepadx.png"
+
+# Create AppStream metadata file
+echo "Creating AppStream metadata..."
+cat > "AppDir/usr/share/metainfo/com.elysianedge.notepadx.appdata.xml" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.elysianedge.notepadx</id>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>NotepadX</name>
+  <summary>A cross-platform text editor</summary>
+  <description>
+    <p>NotepadX is a cross-platform text editor with syntax highlighting for multiple programming languages. It features a clean, modern interface with both light and dark themes.</p>
+  </description>
+  <launchable type="desktop-id">notepadx.desktop</launchable>
+  <url type="homepage">https://elysianedge.com/notepadx</url>
+  <provides>
+    <binary>NotepadX</binary>
+  </provides>
+  <developer_name>Elysian Edge LLC</developer_name>
+  <releases>
+    <release version="1.0.0" date="2023-10-01" />
+  </releases>
+  <content_rating type="oars-1.1" />
+</component>
+EOF
+
+echo "Copying dependencies..."
+# Check for linuxdeploy and use it if available
+if command -v linuxdeploy &> /dev/null && command -v linuxdeploy-plugin-qt &> /dev/null; then
+    echo "Using linuxdeploy for dependency bundling..."
+    # Download AppImageTool if needed
+    if [ ! -f linuxdeploy-x86_64.AppImage ]; then
+        wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+        chmod +x linuxdeploy-x86_64.AppImage
+    fi
+    
+    if [ ! -f linuxdeploy-plugin-qt-x86_64.AppImage ]; then
+        wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+        chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+    fi
+    
+    # Create AppImage package
+    echo "Creating AppImage..."
+    export QMAKE="${QT_PATH}/bin/qmake"
+    ./linuxdeploy-x86_64.AppImage --appdir=AppDir --plugin qt --output appimage --desktop-file=AppDir/usr/share/applications/notepadx.desktop
 else
-    # Manual deployment if linuxdeployqt is not available
-    mkdir -p platforms
-    mkdir -p imageformats
-    cp "${QT_PATH}/plugins/platforms/libqxcb.so" platforms/ 2>/dev/null || :
-    cp "${QT_PATH}/plugins/imageformats/libqsvg.so" imageformats/ 2>/dev/null || :
+    echo "linuxdeploy not found, creating Debian package instead..."
+    
+    # Create directory structure for Debian package
+    echo "Creating Debian package structure..."
+    DEBPKG="notepadx_1.0.0_amd64"
+    mkdir -p "${DEBPKG}/DEBIAN"
+    mkdir -p "${DEBPKG}/usr/bin"
+    mkdir -p "${DEBPKG}/usr/share/applications"
+    mkdir -p "${DEBPKG}/usr/share/icons/hicolor/256x256/apps"
+    
+    # Copy application files
+    cp "NotepadX" "${DEBPKG}/usr/bin/"
+    cp "AppDir/usr/share/applications/notepadx.desktop" "${DEBPKG}/usr/share/applications/"
+    cp "AppDir/usr/share/icons/hicolor/256x256/apps/notepadx.png" "${DEBPKG}/usr/share/icons/hicolor/256x256/apps/"
+    
+    # Create control file
+    cat > "${DEBPKG}/DEBIAN/control" << EOF
+Package: notepadx
+Version: 1.0.0
+Section: editors
+Priority: optional
+Architecture: amd64
+Depends: libqt6core6, libqt6gui6, libqt6widgets6, libqt6svg6
+Maintainer: Elysian Edge LLC <support@elysianedge.com>
+Description: NotepadX
+ A cross-platform text editor with syntax highlighting
+ for multiple programming languages.
+EOF
+    
+    # Build Debian package
+    dpkg-deb --build "${DEBPKG}"
 fi
 
-# Build the installer packages
-echo "Building installer packages..."
-# Build both DEB and RPM packages
-cpack -G DEB,RPM
-
-echo "Installer creation complete."
+echo "[SUCCESS] Linux installer creation complete."
 cd ../..
-
-# Create installation packages - uncomment if you've set up CPack
-# echo "Creating installation packages..."
-# cpack -G DEB
-
-echo "[SUCCESS] ${BUILD_TYPE} build and deployment complete."
-cd ../..
-
-echo "You can find the executable at: ${BUILD_DIR}/NotepadX"

@@ -69,6 +69,16 @@ echo     WriteUninstaller "$INSTDIR\uninstall.exe"
 echo     CreateDirectory "$SMPROGRAMS\NotepadX"
 echo     CreateShortcut "$SMPROGRAMS\NotepadX\NotepadX.lnk" "$INSTDIR\NotepadX.exe"
 echo     CreateShortcut "$DESKTOP\NotepadX.lnk" "$INSTDIR\NotepadX.exe"
+echo.
+echo     ; Add registry keys for Add/Remove Programs
+echo     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX" "DisplayName" "NotepadX"
+echo     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+echo     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
+echo     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX" "DisplayIcon" "$\"$INSTDIR\NotepadX.exe$\""
+echo     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX" "Publisher" "Elysian Edge LLC"
+echo     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX" "DisplayVersion" "1.0.0"
+echo     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX" "NoModify" 1
+echo     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX" "NoRepair" 1
 echo SectionEnd
 echo.
 echo Section "Uninstall"
@@ -82,6 +92,9 @@ echo     RMDir "$INSTDIR"
 echo     Delete "$SMPROGRAMS\NotepadX\NotepadX.lnk"
 echo     Delete "$DESKTOP\NotepadX.lnk"
 echo     RMDir "$SMPROGRAMS\NotepadX"
+echo.
+echo     ; Remove registry keys
+echo     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\NotepadX"
 echo SectionEnd
 ) > simple_installer.nsi
 
