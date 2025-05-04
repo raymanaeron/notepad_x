@@ -35,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent)
     tabWidget->setTabsClosable(true);
     tabWidget->setMovable(true);
     setCentralWidget(tabWidget);
+    
+    // Install event filter on tabBar to fix hover issue
+    tabWidget->tabBar()->installEventFilter(this);
 
     // Connect the tabCloseRequested signal
     connect(tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
@@ -1438,4 +1441,20 @@ void MainWindow::showAboutDialog()
     
     // Display the dialog
     msgBox.exec();
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    // Only filter events for the tab bar
+    if (watched == tabWidget->tabBar()) {
+        // Look specifically for hover events
+        if (event->type() == QEvent::HoverMove || 
+            event->type() == QEvent::HoverEnter) {
+            // Block these events to prevent accidental tab activation
+            return true;
+        }
+    }
+    
+    // Pass all other events to the base class
+    return QMainWindow::eventFilter(watched, event);
 }
