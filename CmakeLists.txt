@@ -101,12 +101,10 @@ elseif(APPLE)
     add_executable(NotepadX MACOSX_BUNDLE ${SOURCES})
     
     # Add icon resources to the bundle
-    set(MACOSX_ICON_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/icons/appicons/notepadx.icns
-    )
-    set_source_files_properties(${MACOSX_ICON_FILES} PROPERTIES
+    set(MACOSX_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/icons/appicons/app_icon_mac.icns)
+    set_source_files_properties(${MACOSX_ICON_FILE} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources")
-    target_sources(NotepadX PRIVATE ${MACOSX_ICON_FILES})
+    target_sources(NotepadX PRIVATE ${MACOSX_ICON_FILE})
     
     # Set additional bundle properties for macOS
     set_target_properties(NotepadX PROPERTIES
@@ -117,18 +115,8 @@ elseif(APPLE)
         MACOSX_BUNDLE_LONG_VERSION_STRING "1.0.0"
         MACOSX_BUNDLE_INFO_STRING "NotepadX - A cross-platform text editor"
         MACOSX_BUNDLE_COPYRIGHT "Copyright © 2025"
-        MACOSX_BUNDLE_ICON_FILE "notepadx.icns"
-        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
+        MACOSX_BUNDLE_ICON_FILE "app_icon_mac.icns"
     )
-    
-    # Copy all SVG icon files to the Resources directory
-    file(GLOB SVG_ICONS "${CMAKE_CURRENT_SOURCE_DIR}/icons/*.svg")
-    foreach(ICON ${SVG_ICONS})
-        get_filename_component(ICON_NAME ${ICON} NAME)
-        set_source_files_properties(${ICON} PROPERTIES
-            MACOSX_PACKAGE_LOCATION "Resources/icons")
-        target_sources(NotepadX PRIVATE ${ICON})
-    endforeach()
 else()
     # Regular executable for Linux and other platforms
     add_executable(NotepadX ${SOURCES})

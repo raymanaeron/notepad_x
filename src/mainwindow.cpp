@@ -1337,29 +1337,32 @@ void MainWindow::resetZoom()
 
 void MainWindow::showAboutDialog()
 {
-    // Display version info and application info
-    QString message = "NotepadX - a cross platform text editor\n\n"
-                      "Copyright (c) 2025 by Rayman Aeron\n";
+    // Create a QMessageBox with rich text support
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("About NotepadX");
     
-    // Add application icon info for debugging
-    QString appIconPath = QCoreApplication::applicationDirPath() + "/icons/appicons/app_icon_win.ico";
-    if (QFile::exists(appIconPath)) {
-        message += "\nApplication icon found at: " + appIconPath;
-    } else {
-        message += "\nApplication icon not found at: " + appIconPath;
-    }
+    // Create HTML content with styled title
+    QString htmlMessage = "<html><body>"
+                          "<h2 style='margin-top:0;'><b>NotepadX</b></h2>"
+                          "<p>A cross platform text editor</p>"
+                          "<p>Copyright (c) 2025 by Rayman Aeron</p>"
+                          "<p>All rights reserved.</p>"
+                          "<p>This program is free software: you can redistribute it and/or modify<br>"
+                          "it under the terms of the GNU General Public License as published by<br>"
+                          "the Free Software Foundation, either version 3 of the License, or<br>"
+                          "(at your option) any later version.</p>"
+                          "<p>This program is distributed in the hope that it will be useful,<br>"
+                          "but WITHOUT ANY WARRANTY; without even the implied warranty of<br>"
+                          "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the<br>"
+                          "GNU General Public License for more details.</p>"
+                          "<p>You should have received a copy of the GNU General Public License<br>"
+                          "along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.</p>"
+                          "</body></html>";
     
-    message += "\n\nAll rights reserved.\n\n"
-               "This program is free software: you can redistribute it and/or modify\n"
-               "it under the terms of the GNU General Public License as published by\n"
-               "the Free Software Foundation, either version 3 of the License, or\n"
-               "(at your option) any later version.\n\n"
-               "This program is distributed in the hope that it will be useful,\n"
-               "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-               "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-               "GNU General Public License for more details.\n\n"
-               "You should have received a copy of the GNU General Public License\n"
-               "along with this program.  If not, see <http://www.gnu.org/licenses/>.";
-
-    QMessageBox::about(this, "About NotepadX", message);
+    // Set the text as rich text (HTML)
+    msgBox.setText(htmlMessage);
+    msgBox.setTextFormat(Qt::RichText);
+    
+    // Display the dialog
+    msgBox.exec();
 }
