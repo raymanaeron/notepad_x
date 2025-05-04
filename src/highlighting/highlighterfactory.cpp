@@ -19,9 +19,11 @@ HighlighterFactory::HighlighterFactory()
     m_languages["JavaScript"] = new JavaScriptLanguage();
     m_languages["Kotlin"] = new KotlinLanguage();
     m_languages["Markup"] = new MarkupLanguage();
+    m_languages["Objective-C"] = new ObjCLanguage();
     m_languages["Python"] = new PythonLanguage();
     m_languages["Rust"] = new RustLanguage();
     m_languages["SCSS"] = new ScssLanguage();
+    m_languages["Swift"] = new SwiftLanguage();
     m_languages["TypeScript"] = new TypeScriptLanguage();
     
     // Create extension mappings - populated from the language data

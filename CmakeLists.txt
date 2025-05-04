@@ -55,6 +55,10 @@ set(SOURCES
     src/highlighting/languages/markuphighlighter.h
     src/highlighting/languages/kotlinhighlighter.cpp
     src/highlighting/languages/kotlinhighlighter.h
+    src/highlighting/languages/objchighlighter.cpp
+    src/highlighting/languages/objchighlighter.h
+    src/highlighting/languages/swifthighlighter.cpp
+    src/highlighting/languages/swifthighlighter.h
 )
 
 add_executable(NotepadX

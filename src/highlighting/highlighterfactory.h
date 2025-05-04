@@ -14,6 +14,8 @@
 #include "languages/csshighlighter.h"
 #include "languages/markuphighlighter.h"
 #include "languages/kotlinhighlighter.h"
+#include "languages/objchighlighter.h"
+#include "languages/swifthighlighter.h"
 #include <QMap>
 #include <QFileInfo>
 
