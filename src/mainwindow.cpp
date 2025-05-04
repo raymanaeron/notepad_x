@@ -1418,7 +1418,7 @@ void MainWindow::showAboutDialog()
     QString htmlMessage = "<html><body>"
                           "<h2 style='margin-top:0;'><b>NotepadX</b></h2>"
                           "<p>A cross platform text editor</p>"
-                          "<p>Copyright (c) 2025 by Rayman Aeron</p>"
+                          "<p>Copyright (c) 2025 by Elysian Edge LLC</p>"
                           "<p>All rights reserved.</p>"
                           "<p>This program is free software: you can redistribute it and/or modify<br>"
                           "it under the terms of the GNU General Public License as published by<br>"
