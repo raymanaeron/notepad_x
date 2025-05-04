@@ -99,6 +99,67 @@ void MainWindow::createMenus()
         }
     });
     
+    // Create Edit menu with clipboard operations
+    QMenu *editMenu = menuBar()->addMenu("&Edit");
+    
+    // Undo action
+    QAction *undoAction = new QAction("&Undo", this);
+    undoAction->setShortcut(QKeySequence::Undo);
+    editMenu->addAction(undoAction);
+    connect(undoAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->undo();
+    });
+    
+    // Redo action
+    QAction *redoAction = new QAction("&Redo", this);
+    redoAction->setShortcut(QKeySequence::Redo);
+    editMenu->addAction(redoAction);
+    connect(redoAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->redo();
+    });
+    
+    editMenu->addSeparator();
+    
+    // Cut action
+    QAction *cutAction = new QAction("Cu&t", this);
+    cutAction->setShortcut(QKeySequence::Cut);
+    editMenu->addAction(cutAction);
+    connect(cutAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->cut();
+    });
+    
+    // Copy action
+    QAction *copyAction = new QAction("&Copy", this);
+    copyAction->setShortcut(QKeySequence::Copy);
+    editMenu->addAction(copyAction);
+    connect(copyAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->copy();
+    });
+    
+    // Paste action
+    QAction *pasteAction = new QAction("&Paste", this);
+    pasteAction->setShortcut(QKeySequence::Paste);
+    editMenu->addAction(pasteAction);
+    connect(pasteAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->paste();
+    });
+    
+    editMenu->addSeparator();
+    
+    // Select All action
+    QAction *selectAllAction = new QAction("Select &All", this);
+    selectAllAction->setShortcut(QKeySequence::SelectAll);
+    editMenu->addAction(selectAllAction);
+    connect(selectAllAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->selectAll();
+    });
+    
     // Create View menu with Theme submenu (moved before Language menu)
     QMenu *viewMenu = menuBar()->addMenu("&View");
     QMenu *themeMenu = viewMenu->addMenu("&Theme");

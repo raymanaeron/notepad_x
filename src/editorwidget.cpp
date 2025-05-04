@@ -1,4 +1,5 @@
 #include "editorwidget.h"
+#include "codeeditor.h"  // Add this include
 #include "highlighting/highlighterfactory.h"
 #include <QVBoxLayout>
 #include <QFileInfo>
@@ -274,4 +275,34 @@ void EditorWidget::setDarkTheme()
     
     // Update line number area highlighting
     textEditor->updateLineNumberAreaForTheme(true);
+}
+
+void EditorWidget::undo()
+{
+    if (textEditor) textEditor->undo();
+}
+
+void EditorWidget::redo()
+{
+    if (textEditor) textEditor->redo();
+}
+
+void EditorWidget::cut()
+{
+    if (textEditor) textEditor->cut();
+}
+
+void EditorWidget::copy()
+{
+    if (textEditor) textEditor->copy();
+}
+
+void EditorWidget::paste()
+{
+    if (textEditor) textEditor->paste();
+}
+
+void EditorWidget::selectAll()
+{
+    if (textEditor) textEditor->selectAll();
 }

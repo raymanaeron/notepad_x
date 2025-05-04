@@ -29,7 +29,8 @@ int CodeEditor::lineNumberAreaWidth()
         ++digits;
     }
     
-    int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
+    // Add extra padding (30px) to match VS Code's appearance
+    int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits + 30;
     return space;
 }
 

@@ -43,7 +43,8 @@ void LineNumberArea::paintEvent(QPaintEvent *event)
                 painter.setPen(QColor(110, 110, 110)); // VS Code light theme line numbers
             }
             
-            painter.drawText(0, top, width() - 5, codeEditor->fontMetrics().height(),
+            // Draw text with appropriate right margin (leave 30px gap)
+            painter.drawText(0, top, width() - 30, codeEditor->fontMetrics().height(),
                             Qt::AlignRight, number);
         }
         

@@ -3,8 +3,9 @@
 
 #include <QWidget>
 #include <QString>
-#include "codeeditor.h"
-#include "highlighting/syntaxhighlighter.h"
+
+class CodeEditor;
+class SyntaxHighlighter;
 
 class EditorWidget : public QWidget
 {
@@ -13,27 +14,29 @@ class EditorWidget : public QWidget
 public:
     explicit EditorWidget(QWidget *parent = nullptr);
     
-    CodeEditor* editor() const { return textEditor; }
-    
-    // File handling methods
     bool loadFile(const QString &fileName);
     bool save();
     bool saveAs();
-    bool saveFile(const QString &fileName);
-    bool maybeSave();
-    
     QString currentFile() const { return curFile; }
     bool isUntitled() const { return curFile.isEmpty(); }
     bool isModified() const;
     void setModified(bool modified);
-    
-    // Language handling
+    bool maybeSave();
     void setLanguage(const QString &language);
     QString currentLanguage() const;
-
-    // Theme handling
     void setLightTheme();
     void setDarkTheme();
+    
+    // Add accessor method for textEditor
+    CodeEditor* editor() const { return textEditor; }
+    
+    // Declare edit operation methods (implementation moved to cpp file)
+    void undo();
+    void redo();
+    void cut();
+    void copy();
+    void paste();
+    void selectAll();
 
 signals:
     void fileNameChanged(const QString &fileName);
@@ -50,6 +53,7 @@ private:
     bool isDarkTheme;
     
     void setupEditor();
+    bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
     void updateHighlighter();
 };
