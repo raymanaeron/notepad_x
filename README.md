@@ -1,2 +1,7 @@
-# Notepad X
-Something yoda
+# NotepadX
+A cross platform text editor
+
+## Background and Motivation
+Despite the wide range of modern code editors and IDEs available today, there remains a gap in the ecosystem for a truly lightweight, fast, and cross-platform text editor that feels as intuitive and efficient as Notepad++ — a tool many developers have come to love on Windows. However, Notepad++ is built on the Win32 API and is not natively available on macOS or Linux. Users on those platforms are left with heavier alternatives like VS Code or minimal ones like Gedit, both of which fail to replicate the responsive, tabbed, plugin-ready experience of Notepad++ in a native-feeling, resource-efficient package.
+
+Notepad X is born from the belief that great tools should be simple, responsive, and available to everyone regardless of operating system. This project aims to reimagine Notepad++ as a modern, portable, and fully open-source application using C++ and Qt. The motivation is not to compete with full-featured IDEs, but to offer a cross-platform editor that loads instantly, supports syntax highlighting, multiple tabs, search and replace -  all with minimal memory and disk footprint. It is a labor of love, intended as a community resource rather than a commercial product.
