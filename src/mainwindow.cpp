@@ -878,7 +878,19 @@ void MainWindow::connectEditorSignals()
         
         // Connect to this editor's cursor position changed signal
         connect(codeEditor, &CodeEditor::cursorPositionChanged, this, &MainWindow::updateCursorPosition);
+        
+        // Connect to zoom level changes directly from CodeEditor
+        disconnect(codeEditor, &CodeEditor::zoomLevelChanged, this, nullptr);
+        connect(codeEditor, &CodeEditor::zoomLevelChanged, this, [this](int) {
+            updateStatusBar();
+        });
     }
+    
+    // Also connect to EditorWidget's zoomLevelChanged signal
+    disconnect(editor, &EditorWidget::zoomLevelChanged, this, nullptr);
+    connect(editor, &EditorWidget::zoomLevelChanged, this, [this](int) {
+        updateStatusBar();
+    });
 }
 
 void MainWindow::readSettings()

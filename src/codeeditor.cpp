@@ -167,10 +167,10 @@ void CodeEditor::wheelEvent(QWheelEvent *e)
     if (e->modifiers() & Qt::ControlModifier) {
         if (e->angleDelta().y() > 0) {
             zoomIn();
-            emit zoomLevelChanged(zoomLevel); // Emit signal after zooming
+            emit zoomLevelChanged(zoomLevel); // Emit signal after zooming in
         } else {
             zoomOut();
-            emit zoomLevelChanged(zoomLevel); // Emit signal after zooming
+            emit zoomLevelChanged(zoomLevel); // Emit signal after zooming out
         }
         e->accept();
     } else {
