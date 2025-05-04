@@ -31,11 +31,11 @@ void SyntaxHighlighter::setDarkTheme(bool useDarkTheme)
 
 void SyntaxHighlighter::setupFormatsForLanguage(const LanguageData &langData)
 {
-    // Save the language name
-    m_languageName = langData.name();
-    
     // Clear any existing rules
     highlightingRules.clear();
+    
+    // Save the language name
+    m_languageName = langData.name();
     
     // Copy all highlighting rules from the language data
     for (const auto &rule : langData.highlightingRules()) {
@@ -43,32 +43,37 @@ void SyntaxHighlighter::setupFormatsForLanguage(const LanguageData &langData)
         newRule.pattern = rule.pattern;
         newRule.format = rule.format;
         
-        // Also create a dark theme version of the format
+        // Create dark theme version of the format with much more vibrant colors
         newRule.darkThemeFormat = rule.format; // Start with the same format
         
-        // Adjust colors for dark theme - use more vibrant VS Code-like colors
+        // Adjust colors for dark theme - use significantly more vibrant colors
         QColor color = rule.format.foreground().color();
         
         if (color == Qt::darkBlue) 
-            newRule.darkThemeFormat.setForeground(QColor(86, 156, 214)); // VS Code keyword blue
+            newRule.darkThemeFormat.setForeground(QColor(100, 180, 255));    // Much brighter blue for keywords
+        else if (color == Qt::blue)
+            newRule.darkThemeFormat.setForeground(QColor(100, 180, 255));    // Bright blue for keywords
         else if (color == Qt::darkRed) 
-            newRule.darkThemeFormat.setForeground(QColor(206, 145, 120)); // VS Code string orange-brown
+            newRule.darkThemeFormat.setForeground(QColor(235, 160, 120));   // Much brighter orange for strings
         else if (color == Qt::darkGreen) 
-            newRule.darkThemeFormat.setForeground(QColor(87, 166, 74)); // VS Code comment green
+            newRule.darkThemeFormat.setForeground(QColor(120, 180, 100));   // Significantly brighter green for comments
         else if (color == Qt::darkYellow) 
-            newRule.darkThemeFormat.setForeground(QColor(220, 220, 170)); // VS Code yellow
+            newRule.darkThemeFormat.setForeground(QColor(248, 248, 170));   // Much brighter yellow
         else if (color == Qt::darkMagenta) 
-            newRule.darkThemeFormat.setForeground(QColor(197, 134, 192)); // VS Code purple
+            newRule.darkThemeFormat.setForeground(QColor(227, 154, 235));   // Vibrant purple for keywords/tags
         else if (color == Qt::darkCyan) 
-            newRule.darkThemeFormat.setForeground(QColor(78, 201, 176)); // VS Code teal
+            newRule.darkThemeFormat.setForeground(QColor(98, 240, 220));    // Bright teal for identifiers
         else if (color == Qt::black) 
-            newRule.darkThemeFormat.setForeground(QColor(220, 220, 220)); // VS Code default text
+            newRule.darkThemeFormat.setForeground(QColor(240, 240, 240));   // Almost white text for better contrast
         else if (color == QColor(0, 128, 128)) // Typical teal color
-            newRule.darkThemeFormat.setForeground(QColor(78, 201, 176)); // VS Code teal
+            newRule.darkThemeFormat.setForeground(QColor(98, 240, 220));    // Brighter teal
         else if (color == QColor(128, 0, 128)) // Typical purple
-            newRule.darkThemeFormat.setForeground(QColor(197, 134, 192)); // VS Code purple 
+            newRule.darkThemeFormat.setForeground(QColor(227, 154, 235));   // Much brighter purple
         else if (color == QColor(128, 64, 0)) // Brown
-            newRule.darkThemeFormat.setForeground(QColor(203, 144, 102)); // VS Code brown
+            newRule.darkThemeFormat.setForeground(QColor(235, 160, 100));   // Brighter brown
+        // Special case for any remaining dark colors that might be hard to see
+        else if (color.lightness() < 128)
+            newRule.darkThemeFormat.setForeground(QColor(240, 240, 240));   // Ensure all text is visible
         
         highlightingRules.append(newRule);
     }
@@ -81,12 +86,7 @@ void SyntaxHighlighter::setupFormatsForLanguage(const LanguageData &langData)
     // Create dark theme version of multi-line comment format
     multiLineCommentDarkFormat = langData.multiLineCommentFormat();
     if (multiLineCommentFormat.foreground().color() == Qt::darkGreen) {
-        multiLineCommentDarkFormat.setForeground(QColor(87, 166, 74)); // VS Code green
-    }
-    
-    // Apply current theme settings
-    if (m_darkTheme) {
-        updateFormatsForTheme();
+        multiLineCommentDarkFormat.setForeground(QColor(120, 180, 100)); // Much brighter green for comments
     }
 }
 
@@ -100,16 +100,14 @@ void SyntaxHighlighter::updateFormatsForTheme()
 void SyntaxHighlighter::highlightBlock(const QString &text)
 {
     // Apply syntax highlighting rules
-    for (const auto &rule : highlightingRules) {
+    foreach (const HighlightingRule &rule, highlightingRules) {
         QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
         while (matchIterator.hasNext()) {
             QRegularExpressionMatch match = matchIterator.next();
-            // Apply the appropriate format based on the theme
-            if (m_darkTheme) {
-                setFormat(match.capturedStart(), match.capturedLength(), rule.darkThemeFormat);
-            } else {
-                setFormat(match.capturedStart(), match.capturedLength(), rule.format);
-            }
+            
+            // Use the appropriate format based on the theme
+            QTextCharFormat format = m_darkTheme ? rule.darkThemeFormat : rule.format;
+            setFormat(match.capturedStart(), match.capturedLength(), format);
         }
     }
     
