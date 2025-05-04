@@ -63,6 +63,18 @@ set(SOURCES
     src/highlighting/languages/shellhighlighter.h
     src/highlighting/languages/sqlhighlighter.cpp
     src/highlighting/languages/sqlhighlighter.h
+    src/highlighting/languages/phpshighlighter.cpp
+    src/highlighting/languages/phpshighlighter.h
+    src/highlighting/languages/rubyhighlighter.cpp
+    src/highlighting/languages/rubyhighlighter.h
+    src/highlighting/languages/yamlhighlighter.cpp
+    src/highlighting/languages/yamlhighlighter.h
+    src/highlighting/languages/jsonhighlighter.cpp
+    src/highlighting/languages/jsonhighlighter.h
+    src/highlighting/languages/xmlhighlighter.cpp
+    src/highlighting/languages/xmlhighlighter.h
+    src/highlighting/languages/luahighlighter.cpp
+    src/highlighting/languages/luahighlighter.h
 )
 
 add_executable(NotepadX

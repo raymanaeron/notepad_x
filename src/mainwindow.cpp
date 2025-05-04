@@ -106,6 +106,7 @@ void MainWindow::createMenus()
     
     // Populate language menu
     QStringList languages = HighlighterFactory::instance().supportedLanguages();
+    
     for (const QString &lang : languages) {
         QAction *langAction = languageMenu->addAction(lang);
         langAction->setCheckable(true);

@@ -19,16 +19,22 @@ HighlighterFactory::HighlighterFactory()
     m_languages["HTML"] = new HtmlLanguage();
     m_languages["Java"] = new JavaLanguage();
     m_languages["JavaScript"] = new JavaScriptLanguage();
+    m_languages["JSON"] = new JsonLanguage();
     m_languages["Kotlin"] = new KotlinLanguage();
+    m_languages["Lua"] = new LuaLanguage();
     m_languages["Markup"] = new MarkupLanguage();
     m_languages["Objective-C"] = new ObjCLanguage();
+    m_languages["PHP"] = new PhpLanguage();
     m_languages["PowerShell"] = new PowerShellLanguage();
     m_languages["Python"] = new PythonLanguage();
+    m_languages["Ruby"] = new RubyLanguage();
     m_languages["Rust"] = new RustLanguage();
     m_languages["SCSS"] = new ScssLanguage();
     m_languages["SQL"] = new SqlLanguage();
     m_languages["Swift"] = new SwiftLanguage();
     m_languages["TypeScript"] = new TypeScriptLanguage();
+    m_languages["XML"] = new XmlLanguage();
+    m_languages["YAML"] = new YamlLanguage();
     
     // Create extension mappings - populated from the language data
     for (auto it = m_languages.constBegin(); it != m_languages.constEnd(); ++it) {
@@ -75,10 +81,10 @@ QString HighlighterFactory::languageForExtension(const QString &extension)
 
 QStringList HighlighterFactory::supportedLanguages() const
 {
-    // Ensure "None" appears first in the list
+    // Ensure "None" appears first in the list, then sort alphabetically
     QStringList languages = m_languages.keys();
     languages.removeAll("None");
-    languages.sort();
+    languages.sort(Qt::CaseInsensitive);  // Use case-insensitive sorting for consistency
     languages.prepend("None");
     return languages;
 }

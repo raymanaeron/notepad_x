@@ -13,11 +13,17 @@
 #include "languages/htmlhighlighter.h"
 #include "languages/csshighlighter.h"
 #include "languages/markuphighlighter.h"
-#include "languages/kotlinhighlighter.h"
+#include "languages/sqlhighlighter.h"
 #include "languages/objchighlighter.h"
 #include "languages/swifthighlighter.h"
 #include "languages/shellhighlighter.h"
-#include "languages/sqlhighlighter.h"
+#include "languages/kotlinhighlighter.h"
+#include "languages/phpshighlighter.h"
+#include "languages/rubyhighlighter.h"
+#include "languages/yamlhighlighter.h"
+#include "languages/jsonhighlighter.h"
+#include "languages/xmlhighlighter.h"
+#include "languages/luahighlighter.h"
 #include <QMap>
 #include <QFileInfo>
 
