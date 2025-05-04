@@ -35,6 +35,24 @@ set(SOURCES
     src/highlighting/languages/cpphighlighter.h
     src/highlighting/languages/rusthighlighter.cpp
     src/highlighting/languages/rusthighlighter.h
+    src/highlighting/languages/gohighlighter.cpp
+    src/highlighting/languages/gohighlighter.h
+    src/highlighting/languages/pythonhighlighter.cpp
+    src/highlighting/languages/pythonhighlighter.h
+    src/highlighting/languages/csharphighlighter.cpp
+    src/highlighting/languages/csharphighlighter.h
+    src/highlighting/languages/javahighlighter.cpp
+    src/highlighting/languages/javahighlighter.h
+    src/highlighting/languages/typescripthighlighter.cpp
+    src/highlighting/languages/typescripthighlighter.h
+    src/highlighting/languages/javascripthighlighter.cpp
+    src/highlighting/languages/javascripthighlighter.h
+    src/highlighting/languages/htmlhighlighter.cpp
+    src/highlighting/languages/htmlhighlighter.h
+    src/highlighting/languages/csshighlighter.cpp
+    src/highlighting/languages/csshighlighter.h
+    src/highlighting/languages/markuphighlighter.cpp
+    src/highlighting/languages/markuphighlighter.h
 )
 
 add_executable(NotepadX

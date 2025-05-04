@@ -10,8 +10,18 @@ HighlighterFactory::HighlighterFactory()
 {
     // Register languages - "None" first to ensure it appears at the top
     m_languages["None"] = new LanguageData(); // Plain text, no highlighting
+    m_languages["C#"] = new CSharpLanguage();
     m_languages["C++"] = new CppLanguage();
+    m_languages["CSS"] = new CssLanguage();
+    m_languages["Go"] = new GoLanguage();
+    m_languages["HTML"] = new HtmlLanguage();
+    m_languages["Java"] = new JavaLanguage();
+    m_languages["JavaScript"] = new JavaScriptLanguage();
+    m_languages["Markup"] = new MarkupLanguage();
+    m_languages["Python"] = new PythonLanguage();
     m_languages["Rust"] = new RustLanguage();
+    m_languages["SCSS"] = new ScssLanguage();
+    m_languages["TypeScript"] = new TypeScriptLanguage();
     
     // Create extension mappings - populated from the language data
     for (auto it = m_languages.constBegin(); it != m_languages.constEnd(); ++it) {

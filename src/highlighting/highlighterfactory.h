@@ -4,6 +4,15 @@
 #include "syntaxhighlighter.h"
 #include "languages/cpphighlighter.h"
 #include "languages/rusthighlighter.h"
+#include "languages/gohighlighter.h"
+#include "languages/pythonhighlighter.h"
+#include "languages/csharphighlighter.h"
+#include "languages/javahighlighter.h"
+#include "languages/typescripthighlighter.h"
+#include "languages/javascripthighlighter.h"
+#include "languages/htmlhighlighter.h"
+#include "languages/csshighlighter.h"
+#include "languages/markuphighlighter.h"
 #include <QMap>
 #include <QFileInfo>
 
