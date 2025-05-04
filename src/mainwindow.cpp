@@ -22,6 +22,7 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include "fonticon.h" // Add this to include FontIcon
+#include "svgiconprovider.h" // Add SVG icon provider
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
@@ -293,29 +294,45 @@ void MainWindow::createToolBar()
     QToolBar *toolBar = addToolBar("Main Toolbar");
     toolBar->setObjectName("mainToolBar"); // Add object name for settings
     toolBar->setMovable(false);
-    toolBar->setIconSize(QSize(18, 18));
+    toolBar->setIconSize(QSize(24, 24)); // Slightly larger size for SVG icons
     
-    // New file action - use FontAwesome icon
+    // New file action
     QAction *newAction = toolBar->addAction("New");
-    newAction->setIcon(FontIcon::icon(FontIcon::FA_FILE));
+    QIcon newIcon = SvgIconProvider::getIcon("new");
+    // Fallback to Font Awesome if SVG fails
+    if (newIcon.isNull()) {
+        newIcon = FontIcon::icon(FontIcon::FA_FILE);
+    }
+    newAction->setIcon(newIcon);
     connect(newAction, &QAction::triggered, this, &MainWindow::createNewTab);
     
-    // Open file action - use FontAwesome icon
+    // Open file action
     QAction *openAction = toolBar->addAction("Open");
-    openAction->setIcon(FontIcon::icon(FontIcon::FA_FOLDER_OPEN));
+    QIcon openIcon = SvgIconProvider::getIcon("open");
+    if (openIcon.isNull()) {
+        openIcon = FontIcon::icon(FontIcon::FA_FOLDER_OPEN);
+    }
+    openAction->setIcon(openIcon);
     connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
     
-    // Save file action - use FontAwesome icon
+    // Save file action
     QAction *saveAction = toolBar->addAction("Save");
-    saveAction->setIcon(FontIcon::icon(FontIcon::FA_SAVE));
+    QIcon saveIcon = SvgIconProvider::getIcon("save");
+    if (saveIcon.isNull()) {
+        saveIcon = FontIcon::icon(FontIcon::FA_SAVE);
+    }
+    saveAction->setIcon(saveIcon);
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveFile);
     
     toolBar->addSeparator();
     
-    // For the clipboard operations, we'll use FontAwesome icons
     // Cut action
     QAction *cutAction = toolBar->addAction("Cut");
-    cutAction->setIcon(FontIcon::icon(FontIcon::FA_CUT));
+    QIcon cutIcon = SvgIconProvider::getIcon("cut");
+    if (cutIcon.isNull()) {
+        cutIcon = FontIcon::icon(FontIcon::FA_CUT);
+    }
+    cutAction->setIcon(cutIcon);
     cutAction->setToolTip(QString("Cut (Ctrl+X)"));
     connect(cutAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -324,7 +341,11 @@ void MainWindow::createToolBar()
     
     // Copy action
     QAction *copyAction = toolBar->addAction("Copy");
-    copyAction->setIcon(FontIcon::icon(FontIcon::FA_COPY));
+    QIcon copyIcon = SvgIconProvider::getIcon("copy");
+    if (copyIcon.isNull()) {
+        copyIcon = FontIcon::icon(FontIcon::FA_COPY);
+    }
+    copyAction->setIcon(copyIcon);
     copyAction->setToolTip(QString("Copy (Ctrl+C)"));
     connect(copyAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -333,7 +354,11 @@ void MainWindow::createToolBar()
     
     // Paste action
     QAction *pasteAction = toolBar->addAction("Paste");
-    pasteAction->setIcon(FontIcon::icon(FontIcon::FA_PASTE));
+    QIcon pasteIcon = SvgIconProvider::getIcon("paste");
+    if (pasteIcon.isNull()) {
+        pasteIcon = FontIcon::icon(FontIcon::FA_PASTE);
+    }
+    pasteAction->setIcon(pasteIcon);
     pasteAction->setToolTip(QString("Paste (Ctrl+V)"));
     connect(pasteAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -344,7 +369,11 @@ void MainWindow::createToolBar()
     
     // Undo action
     QAction *undoAction = toolBar->addAction("Undo");
-    undoAction->setIcon(FontIcon::icon(FontIcon::FA_UNDO));
+    QIcon undoIcon = SvgIconProvider::getIcon("undo");
+    if (undoIcon.isNull()) {
+        undoIcon = FontIcon::icon(FontIcon::FA_UNDO);
+    }
+    undoAction->setIcon(undoIcon);
     undoAction->setToolTip(QString("Undo (Ctrl+Z)"));
     connect(undoAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -353,7 +382,11 @@ void MainWindow::createToolBar()
     
     // Redo action
     QAction *redoAction = toolBar->addAction("Redo");
-    redoAction->setIcon(FontIcon::icon(FontIcon::FA_REPEAT));
+    QIcon redoIcon = SvgIconProvider::getIcon("redo");
+    if (redoIcon.isNull()) {
+        redoIcon = FontIcon::icon(FontIcon::FA_REPEAT);
+    }
+    redoAction->setIcon(redoIcon);
     redoAction->setToolTip(QString("Redo (Ctrl+Y)"));
     connect(redoAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -1173,7 +1206,18 @@ void MainWindow::resetZoom()
 
 void MainWindow::showAboutDialog()
 {
-    QMessageBox::about(this, "About NotepadX",
-                      "NotepadX - a cross platform text editor\n"
-                      "Copyright (c) 2025 by Rayman Aeron");
+    // Check if SVG files exist in the filesystem
+    QString projectDir = QCoreApplication::applicationDirPath();
+    QDir iconDir(projectDir + "/../icons");
+    
+    QString message = "NotepadX - a cross platform text editor\n\n"
+                     "Copyright (c) 2025 by Rayman Aeron\n\n";
+    
+    // Debug info
+    message += "SVG icons directory exists: " + QString(iconDir.exists() ? "Yes" : "No") + "\n";
+    if (iconDir.exists()) {
+        message += "SVG files found: " + QString::number(iconDir.entryList(QStringList() << "*.svg", QDir::Files).count());
+    }
+    
+    QMessageBox::about(this, "About NotepadX", message);
 }

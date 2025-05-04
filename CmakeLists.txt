@@ -9,8 +9,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt6 REQUIRED COMPONENTS Svg)
+# Find Qt packages
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Svg)
 
 # Add the src directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -80,10 +81,8 @@ set(SOURCES
     src/highlighting/languages/xmlhighlighter.h
     src/highlighting/languages/luahighlighter.cpp
     src/highlighting/languages/luahighlighter.h
+    resources.qrc
 )
-
-# Remove the resources.qrc from the project since we're using system icons
-set(RESOURCE_FILES "")
 
 # Set GUI application properties for different platforms
 if(WIN32)
@@ -106,7 +105,11 @@ else()
     add_executable(NotepadX ${SOURCES})
 endif()
 
+# Make sure resources.qrc is included in the build
+target_sources(NotepadX PRIVATE resources.qrc)
+
+# Link libraries
 target_link_libraries(NotepadX PRIVATE 
-    Qt6::Widgets
-    Qt6::Svg
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Svg
 )

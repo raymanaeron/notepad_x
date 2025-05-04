@@ -46,6 +46,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Copy icons folder to the executable directory
+echo Copying icons to executable directory...
+if not exist icons mkdir icons
+xcopy /Y /E /I "..\..\icons" "icons\"
+
 echo Deploying Qt runtime dependencies with windeployqt...
 REM Add Qt bin directory to PATH temporarily for windeployqt to find the platform plugins
 set PATH=%QT_PATH%\bin;%PATH%
