@@ -2,9 +2,11 @@
 A cross platform text editor
 
 ## Background and Motivation
-Despite the wide range of modern code editors and IDEs available today, there remains a gap in the ecosystem for a truly lightweight, fast, and cross-platform text editor that feels as intuitive and efficient as Notepad++ — a tool many developers have come to love on Windows. However, Notepad++ is built on the Win32 API and is not natively available on macOS or Linux. Users on those platforms are left with heavier alternatives like VS Code or minimal ones like Gedit, both of which fail to replicate the responsive, tabbed, plugin-ready experience of Notepad++ in a native-feeling, resource-efficient package.
+In today's software development landscape, there's a clear need for a truly lightweight, fast, and cross-platform text editor that combines efficiency with intuitive design. While numerous editors exist, many either sacrifice performance for features or simplicity for cross-platform compatibility.
 
-Notepad X is born from the belief that great tools should be simple, responsive, and available to everyone regardless of operating system. This project aims to reimagine Notepad++ as a modern, portable, and fully open-source application using C++ and Qt. The motivation is not to compete with full-featured IDEs, but to offer a cross-platform editor that loads instantly, supports syntax highlighting, multiple tabs, search and replace -  all with minimal memory and disk footprint. It is a labor of love, intended as a community resource rather than a commercial product.
+NotepadX fills this gap with a clean, responsive editor that feels native on Windows, macOS, and Linux alike. It offers the perfect balance between functionality and resource efficiency—providing the essential features developers need without the bloat that slows down workflow.
+
+This project embodies the philosophy that great tools should be simple, responsive, and accessible to everyone regardless of their operating system. Built with C++ and Qt, NotepadX delivers a modern, portable, and fully open-source editing experience. Our goal isn't to replace full-featured IDEs, but to provide a lightning-fast editor that supports syntax highlighting, multiple tabs, and powerful search capabilities—all while maintaining minimal memory and disk footprint. NotepadX represents a commitment to quality software that respects both your system resources and your productivity.
 
 ## Features
 
@@ -64,4 +66,4 @@ This project is licensed under the GPL-3.0 License - see the LICENSE file for de
 
 ## Acknowledgements
 
-NotepadX is developed by Elysian Edge LLC and the open source community.
+NotepadX is developed by Elysian Edge LLC.
