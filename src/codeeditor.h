@@ -17,6 +17,9 @@ public:
     void setEditorMargins(int left, int top, int right, int bottom);
     void updateLineNumberAreaForTheme(bool isDark);
     
+    // Add explicit setter for theme state
+    void setDarkTheme(bool dark) { isDarkTheme = dark; }
+    
     // Add zoom functionality
     void zoomIn(int range = 1);
     void zoomOut(int range = 1);

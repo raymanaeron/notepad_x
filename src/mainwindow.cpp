@@ -59,6 +59,12 @@ MainWindow::MainWindow(QWidget *parent)
     {
         createNewTab();
     }
+    
+    // Make sure theme is consistently applied after all UI is created
+    if (isDarkThemeActive) {
+        // Re-apply dark theme to ensure consistent state across all components
+        applyDarkTheme();
+    }
 }
 
 MainWindow::~MainWindow()
@@ -880,15 +886,38 @@ void MainWindow::applyLightTheme()
         }
     }
 
-    // Update toolbar icons for light theme
+    // Create custom icon style to ensure toolbar icons are visible in light theme
     QList<QAction *> actions = findChildren<QAction *>();
     for (QAction *action : actions)
     {
-        QIcon icon = action->icon();
-        if (!icon.isNull())
+        if (action->icon().isNull())
+            continue;
+            
+        // Create a new icon with custom color overlay for light theme
+        QIcon originalIcon = action->icon();
+        QIcon::Mode mode = QIcon::Normal;
+        
+        // Get all available sizes of the icon
+        QList<QSize> sizes = originalIcon.availableSizes(mode);
+        if (sizes.isEmpty())
+            sizes.append(QSize(24, 24)); // Default size
+            
+        QIcon newIcon;
+        for (const QSize &size : sizes)
         {
-            action->setIcon(action->icon().pixmap(24, 24, QIcon::Normal, QIcon::Off));
+            // Get the pixmap from the original icon
+            QPixmap pixmap = originalIcon.pixmap(size);
+            
+            // Create a darker version of the icon for light theme
+            QPainter painter(&pixmap);
+            painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+            painter.fillRect(pixmap.rect(), QColor(50, 50, 50));  // Dark color for light background
+            painter.end();
+            
+            newIcon.addPixmap(pixmap, mode);
         }
+        
+        action->setIcon(newIcon);
     }
 
     // Save the theme preference immediately
@@ -933,15 +962,38 @@ void MainWindow::applyDarkTheme()
         }
     }
 
-    // Update toolbar icons for dark theme
+    // Create custom icon style to ensure toolbar icons are visible in dark theme
     QList<QAction *> actions = findChildren<QAction *>();
     for (QAction *action : actions)
     {
-        QIcon icon = action->icon();
-        if (!icon.isNull())
+        if (action->icon().isNull())
+            continue;
+            
+        // Create a new icon with custom color overlay for dark theme
+        QIcon originalIcon = action->icon();
+        QIcon::Mode mode = QIcon::Normal;
+        
+        // Get all available sizes of the icon
+        QList<QSize> sizes = originalIcon.availableSizes(mode);
+        if (sizes.isEmpty())
+            sizes.append(QSize(24, 24)); // Default size
+            
+        QIcon newIcon;
+        for (const QSize &size : sizes)
         {
-            action->setIcon(action->icon().pixmap(24, 24, QIcon::Normal, QIcon::On));
+            // Get the pixmap from the original icon
+            QPixmap pixmap = originalIcon.pixmap(size);
+            
+            // Create a bright version of the icon for dark theme
+            QPainter painter(&pixmap);
+            painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+            painter.fillRect(pixmap.rect(), QColor(220, 220, 220));  // Light color for dark background
+            painter.end();
+            
+            newIcon.addPixmap(pixmap, mode);
         }
+        
+        action->setIcon(newIcon);
     }
 
     // Save the theme preference immediately
@@ -1050,7 +1102,7 @@ void MainWindow::readSettings()
         restoreState(state);
     }
 
-    // Restore theme setting
+    // Restore theme setting - but don't apply yet
     isDarkThemeActive = settings.value("darkTheme", false).toBool();
 
     // Update theme menu items to match the loaded preference
@@ -1080,16 +1132,6 @@ void MainWindow::readSettings()
         }
     }
     recentFiles = validRecentFiles;
-
-    // Apply the appropriate theme immediately after reading preference
-    if (isDarkThemeActive)
-    {
-        applyDarkTheme();
-    }
-    else
-    {
-        applyLightTheme();
-    }
 
     // Only restore session files if that setting is enabled
     bool restoreSession = settings.value("restoreSession", true).toBool();
@@ -1164,6 +1206,16 @@ void MainWindow::readSettings()
         }
     }
 
+    // Apply the appropriate theme AFTER all UI elements are created
+    if (isDarkThemeActive)
+    {
+        applyDarkTheme();
+    }
+    else
+    {
+        applyLightTheme();
+    }
+
     // Update the recent files menu
     updateRecentFilesMenu();
 }
@@ -1203,6 +1255,9 @@ void MainWindow::writeSettings()
 
     // Save current tab index
     settings.setValue("currentTabIndex", tabWidget->currentIndex());
+    
+    // Save restore session setting (always true for now)
+    settings.setValue("restoreSession", true);
 }
 
 void MainWindow::addToRecentFiles(const QString &filePath)

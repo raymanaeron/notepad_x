@@ -262,7 +262,8 @@ void EditorWidget::setLightTheme()
         highlighter->setDarkTheme(false);
     }
     
-    // Update line number area highlighting
+    // Update line number area highlighting - Explicitly set theme state
+    textEditor->setDarkTheme(false);
     textEditor->updateLineNumberAreaForTheme(false);
 }
 
@@ -284,7 +285,8 @@ void EditorWidget::setDarkTheme()
         highlighter->setDarkTheme(true);
     }
     
-    // Update line number area highlighting
+    // Update line number area highlighting - Explicitly set theme state
+    textEditor->setDarkTheme(true);
     textEditor->updateLineNumberAreaForTheme(true);
 }
 
