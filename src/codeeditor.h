@@ -29,8 +29,7 @@ signals:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
-    // Add wheel event override for Ctrl+mouse wheel zoom
-    void wheelEvent(QWheelEvent *e) override;
+    void wheelEvent(QWheelEvent *e) override; // Add this method
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);

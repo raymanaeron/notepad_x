@@ -282,6 +282,7 @@ void MainWindow::createMenus()
 void MainWindow::createToolBar()
 {
     QToolBar *toolBar = addToolBar("Main Toolbar");
+    toolBar->setObjectName("mainToolBar"); // Add this line to set the object name
     toolBar->setMovable(false);
     toolBar->setIconSize(QSize(18, 18));
     
