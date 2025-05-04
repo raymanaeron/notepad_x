@@ -59,6 +59,10 @@ set(SOURCES
     src/highlighting/languages/objchighlighter.h
     src/highlighting/languages/swifthighlighter.cpp
     src/highlighting/languages/swifthighlighter.h
+    src/highlighting/languages/shellhighlighter.cpp
+    src/highlighting/languages/shellhighlighter.h
+    src/highlighting/languages/sqlhighlighter.cpp
+    src/highlighting/languages/sqlhighlighter.h
 )
 
 add_executable(NotepadX

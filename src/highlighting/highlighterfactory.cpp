@@ -10,6 +10,8 @@ HighlighterFactory::HighlighterFactory()
 {
     // Register languages - "None" first to ensure it appears at the top
     m_languages["None"] = new LanguageData(); // Plain text, no highlighting
+    m_languages["Bash"] = new BashLanguage();
+    m_languages["Batch"] = new BatchLanguage();
     m_languages["C#"] = new CSharpLanguage();
     m_languages["C++"] = new CppLanguage();
     m_languages["CSS"] = new CssLanguage();
@@ -20,9 +22,11 @@ HighlighterFactory::HighlighterFactory()
     m_languages["Kotlin"] = new KotlinLanguage();
     m_languages["Markup"] = new MarkupLanguage();
     m_languages["Objective-C"] = new ObjCLanguage();
+    m_languages["PowerShell"] = new PowerShellLanguage();
     m_languages["Python"] = new PythonLanguage();
     m_languages["Rust"] = new RustLanguage();
     m_languages["SCSS"] = new ScssLanguage();
+    m_languages["SQL"] = new SqlLanguage();
     m_languages["Swift"] = new SwiftLanguage();
     m_languages["TypeScript"] = new TypeScriptLanguage();
     
