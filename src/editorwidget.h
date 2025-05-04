@@ -3,8 +3,7 @@
 
 #include <QWidget>
 #include "codeeditor.h"
-
-class SyntaxHighlighter;
+#include "highlighting/syntaxhighlighter.h"
 
 class EditorWidget : public QWidget
 {
@@ -26,10 +25,15 @@ public:
     bool isUntitled() const { return curFile.isEmpty(); }
     bool isModified() const;
     void setModified(bool modified);
+    
+    // Language handling
+    void setLanguage(const QString &language);
+    QString currentLanguage() const;
 
 signals:
     void fileNameChanged(const QString &fileName);
     void modificationChanged(bool modified);
+    void languageChanged(const QString &language);
 
 private slots:
     void documentWasModified();
@@ -41,6 +45,7 @@ private:
     
     void setupEditor();
     void setCurrentFile(const QString &fileName);
+    void updateHighlighter();
 };
 
 #endif // EDITORWIDGET_H

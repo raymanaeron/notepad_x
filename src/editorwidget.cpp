@@ -1,13 +1,11 @@
 #include "editorwidget.h"
-#include "syntaxhighlighter.h"
+#include "highlighting/highlighterfactory.h"
 #include <QVBoxLayout>
-#include <QTextBlock>
 #include <QFileInfo>
 #include <QFile>
 #include <QTextStream>
 #include <QMessageBox>
 #include <QFileDialog>
-#include <QApplication>
 #include <QDir>
 
 EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile("")
@@ -20,8 +18,9 @@ EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile("")
     textEditor = new CodeEditor(this);
     setupEditor();
     
-    // Create and apply syntax highlighter
-    highlighter = new SyntaxHighlighter(textEditor->document());
+    // Create syntax highlighter with appropriate language
+    highlighter = nullptr;
+    updateHighlighter();
     
     // Add widgets to layout
     layout->addWidget(textEditor);
@@ -70,6 +69,7 @@ bool EditorWidget::loadFile(const QString &fileName)
     textEditor->setPlainText(in.readAll());
     
     setCurrentFile(fileName);
+    updateHighlighter();  // Update highlighter based on file extension
     return true;
 }
 
@@ -122,6 +122,40 @@ void EditorWidget::setCurrentFile(const QString &fileName)
     textEditor->document()->setModified(false);
     emit fileNameChanged(curFile);
     emit modificationChanged(false);
+}
+
+void EditorWidget::updateHighlighter()
+{
+    // Delete old highlighter if it exists
+    if (highlighter) {
+        delete highlighter;
+        highlighter = nullptr;
+    }
+    
+    // Create new highlighter based on file extension
+    if (!curFile.isEmpty()) {
+        highlighter = HighlighterFactory::instance().createHighlighterForFile(curFile, textEditor->document());
+    } else {
+        // Default highlighter for new files - plain text
+        highlighter = HighlighterFactory::instance().createHighlighter("Plain Text", textEditor->document());
+    }
+    
+    emit languageChanged(highlighter->languageName());
+}
+
+void EditorWidget::setLanguage(const QString &language)
+{
+    if (highlighter) {
+        delete highlighter;
+    }
+    
+    highlighter = HighlighterFactory::instance().createHighlighter(language, textEditor->document());
+    emit languageChanged(highlighter->languageName());
+}
+
+QString EditorWidget::currentLanguage() const
+{
+    return highlighter ? highlighter->languageName() : "Plain Text";
 }
 
 void EditorWidget::documentWasModified()
