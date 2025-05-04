@@ -1,4 +1,5 @@
 #include "editorwidget.h"
+#include "syntaxhighlighter.h"
 #include <QVBoxLayout>
 #include <QTextBlock>
 #include <QFileInfo>
@@ -18,6 +19,9 @@ EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile("")
     // Create text editor
     textEditor = new CodeEditor(this);
     setupEditor();
+    
+    // Create and apply syntax highlighter
+    highlighter = new SyntaxHighlighter(textEditor->document());
     
     // Add widgets to layout
     layout->addWidget(textEditor);

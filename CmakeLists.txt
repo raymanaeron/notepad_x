@@ -25,6 +25,8 @@ set(SOURCES
     src/linenumberarea.h
     src/codeeditor.cpp
     src/codeeditor.h
+    src/syntaxhighlighter.cpp
+    src/syntaxhighlighter.h
 )
 
 add_executable(NotepadX

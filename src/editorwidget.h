@@ -4,6 +4,8 @@
 #include <QWidget>
 #include "codeeditor.h"
 
+class SyntaxHighlighter;
+
 class EditorWidget : public QWidget
 {
     Q_OBJECT
@@ -35,6 +37,7 @@ private slots:
 private:
     CodeEditor *textEditor;
     QString curFile;
+    SyntaxHighlighter *highlighter;
     
     void setupEditor();
     void setCurrentFile(const QString &fileName);
