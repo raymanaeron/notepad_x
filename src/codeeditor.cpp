@@ -3,7 +3,7 @@
 #include <QPainter>
 #include <QTextBlock>
 
-CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
+CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent), isDarkTheme(false)
 {
     lineNumberArea = new LineNumberArea(this);
     
@@ -65,7 +65,10 @@ void CodeEditor::highlightCurrentLine()
     if (!isReadOnly()) {
         QTextEdit::ExtraSelection selection;
         
-        QColor lineColor = QColor(Qt::yellow).lighter(160);
+        // Different highlight colors based on theme
+        QColor lineColor = isDarkTheme ? 
+                         QColor(45, 45, 45) : // Darker for dark theme
+                         QColor(Qt::yellow).lighter(160); // Lighter for light theme
         
         selection.format.setBackground(lineColor);
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
@@ -75,4 +78,15 @@ void CodeEditor::highlightCurrentLine()
     }
     
     setExtraSelections(extraSelections);
+}
+
+void CodeEditor::updateLineNumberAreaForTheme(bool isDark)
+{
+    isDarkTheme = isDark;
+    
+    // Update current line highlight with new theme colors
+    highlightCurrentLine();
+    
+    // Force repaint of line number area
+    lineNumberArea->update();
 }

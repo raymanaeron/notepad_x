@@ -29,12 +29,16 @@ private slots:
     void documentModified(bool modified);
     void languageSelected(QAction *action);
     void updateLanguageMenu();
+    void applyLightTheme();
+    void applyDarkTheme();
 
 private:
     QTabWidget *tabWidget;
     int untitledCount;
     QMenu *languageMenu;
     QActionGroup *languageActionGroup;
+    QActionGroup *themeActionGroup;
+    bool isDarkThemeActive;  // Track the currently active theme
     
     void createActions();
     void createMenus();

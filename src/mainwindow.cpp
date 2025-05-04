@@ -14,7 +14,7 @@
 #include <QStatusBar>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), untitledCount(0)
+    : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false)
 {
     setWindowTitle("Notepad X");
     resize(800, 600);
@@ -121,6 +121,28 @@ void MainWindow::createMenus()
     
     // Connect tab change signal to update language menu
     connect(tabWidget, &QTabWidget::currentChanged, this, &MainWindow::updateLanguageMenu);
+    
+    // Create View menu with Theme submenu
+    QMenu *viewMenu = menuBar()->addMenu("&View");
+    QMenu *themeMenu = viewMenu->addMenu("&Theme");
+    
+    // Create theme action group
+    themeActionGroup = new QActionGroup(this);
+    
+    // Light theme action
+    QAction *lightThemeAction = new QAction("&Light Theme", this);
+    lightThemeAction->setCheckable(true);
+    lightThemeAction->setChecked(true); // Default is light theme
+    themeActionGroup->addAction(lightThemeAction);
+    themeMenu->addAction(lightThemeAction);
+    connect(lightThemeAction, &QAction::triggered, this, &MainWindow::applyLightTheme);
+    
+    // Dark theme action
+    QAction *darkThemeAction = new QAction("&Dark Theme", this);
+    darkThemeAction->setCheckable(true);
+    themeActionGroup->addAction(darkThemeAction);
+    themeMenu->addAction(darkThemeAction);
+    connect(darkThemeAction, &QAction::triggered, this, &MainWindow::applyDarkTheme);
 }
 
 void MainWindow::createNewTab()
@@ -151,6 +173,13 @@ void MainWindow::createNewTab()
     // Set the new tab as the current tab
     tabWidget->setCurrentIndex(index);
     editor->setFocus();
+    
+    // Apply the active theme to the new tab
+    if (isDarkThemeActive) {
+        editor->setDarkTheme();
+    } else {
+        editor->setLightTheme();
+    }
     
     // Update the language menu to reflect the current editor
     updateLanguageMenu();
@@ -208,7 +237,7 @@ void MainWindow::openFile()
         return;
     }
     
-    // Otherwise, create a new tab
+    // Create a new tab
     EditorWidget *editor = new EditorWidget(this);
     if (editor->loadFile(fileName)) {
         int index = tabWidget->addTab(editor, QFileInfo(fileName).fileName());
@@ -224,6 +253,13 @@ void MainWindow::openFile()
         
         connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
         statusBar()->showMessage(tr("File loaded"), 2000);
+        
+        // Apply the active theme to this newly opened file
+        if (isDarkThemeActive) {
+            editor->setDarkTheme();
+        } else {
+            editor->setLightTheme();
+        }
     } else {
         delete editor;
     }
@@ -358,6 +394,64 @@ void MainWindow::updateLanguageMenu()
                 action->setChecked(true);
                 break;
             }
+        }
+    }
+}
+
+void MainWindow::applyLightTheme()
+{
+    // Set light theme for the application
+    qApp->setStyle("Fusion");
+    
+    // Create and apply light theme palette
+    QPalette lightPalette;
+    qApp->setPalette(lightPalette);
+    
+    // Update theme tracking state
+    isDarkThemeActive = false;
+    
+    // Update all existing editors
+    for (int i = 0; i < tabWidget->count(); ++i) {
+        EditorWidget *editor = qobject_cast<EditorWidget*>(tabWidget->widget(i));
+        if (editor) {
+            // Update editor theme
+            editor->setLightTheme();
+        }
+    }
+}
+
+void MainWindow::applyDarkTheme()
+{
+    // Set dark theme for the application
+    qApp->setStyle("Fusion");
+    
+    // Create and apply dark theme palette
+    QPalette darkPalette;
+    darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::WindowText, Qt::white);
+    darkPalette.setColor(QPalette::Base, QColor(35, 35, 35));
+    darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::ToolTipBase, QColor(25, 25, 25));
+    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+    darkPalette.setColor(QPalette::Text, Qt::white);
+    darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+    
+    qApp->setPalette(darkPalette);
+    
+    // Update theme tracking state
+    isDarkThemeActive = true;
+    
+    // Update all existing editors
+    for (int i = 0; i < tabWidget->count(); ++i) {
+        EditorWidget *editor = qobject_cast<EditorWidget*>(tabWidget->widget(i));
+        if (editor) {
+            // Update editor theme
+            editor->setDarkTheme();
         }
     }
 }

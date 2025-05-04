@@ -18,6 +18,9 @@ public:
     // Method for line number area to use during painting
     int lineNumberAreaWidth();
     
+    // Method to update line number area colors based on theme
+    void updateLineNumberAreaForTheme(bool isDark);
+    
 protected:
     void resizeEvent(QResizeEvent *event) override;
     
@@ -28,6 +31,7 @@ private slots:
     
 private:
     LineNumberArea *lineNumberArea;
+    bool isDarkTheme;
     
     friend class LineNumberArea;
 };

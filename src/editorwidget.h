@@ -2,6 +2,7 @@
 #define EDITORWIDGET_H
 
 #include <QWidget>
+#include <QString>
 #include "codeeditor.h"
 #include "highlighting/syntaxhighlighter.h"
 
@@ -30,6 +31,10 @@ public:
     void setLanguage(const QString &language);
     QString currentLanguage() const;
 
+    // Theme handling
+    void setLightTheme();
+    void setDarkTheme();
+
 signals:
     void fileNameChanged(const QString &fileName);
     void modificationChanged(bool modified);
@@ -42,6 +47,7 @@ private:
     CodeEditor *textEditor;
     QString curFile;
     SyntaxHighlighter *highlighter;
+    bool isDarkTheme;
     
     void setupEditor();
     void setCurrentFile(const QString &fileName);

@@ -8,7 +8,7 @@
 #include <QFileDialog>
 #include <QDir>
 
-EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile("")
+EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile(""), isDarkTheme(false)
 {
     // Create layout
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -150,7 +150,13 @@ void EditorWidget::setLanguage(const QString &language)
     }
     
     highlighter = HighlighterFactory::instance().createHighlighter(language, textEditor->document());
-    emit languageChanged(highlighter->languageName());
+    
+    // Apply theme-specific colors if we're in dark mode
+    if (isDarkTheme && highlighter) {
+        highlighter->setDarkTheme(true);
+    }
+    
+    emit languageChanged(highlighter ? highlighter->languageName() : "Plain Text");
 }
 
 QString EditorWidget::currentLanguage() const
@@ -190,4 +196,46 @@ bool EditorWidget::maybeSave()
         return false;
         
     return true;  // Discard was clicked
+}
+
+void EditorWidget::setLightTheme()
+{
+    isDarkTheme = false;
+    
+    // Set light theme colors for editor
+    QPalette editorPalette;
+    textEditor->setPalette(editorPalette);
+    
+    // Default light background color for editor
+    textEditor->setStyleSheet("QPlainTextEdit { background-color: #ffffff; color: #000000; }");
+    
+    // Update highlighter with light theme colors
+    if (highlighter) {
+        highlighter->setDarkTheme(false);
+    }
+    
+    // Update line number area highlighting
+    textEditor->updateLineNumberAreaForTheme(false);
+}
+
+void EditorWidget::setDarkTheme()
+{
+    isDarkTheme = true;
+    
+    // Set dark theme colors for editor
+    QPalette darkEditorPalette;
+    darkEditorPalette.setColor(QPalette::Base, QColor(35, 35, 35));
+    darkEditorPalette.setColor(QPalette::Text, Qt::white);
+    textEditor->setPalette(darkEditorPalette);
+    
+    // Custom dark background color for editor
+    textEditor->setStyleSheet("QPlainTextEdit { background-color: #232323; color: #ffffff; }");
+    
+    // Update highlighter with dark theme colors
+    if (highlighter) {
+        highlighter->setDarkTheme(true);
+    }
+    
+    // Update line number area highlighting
+    textEditor->updateLineNumberAreaForTheme(true);
 }

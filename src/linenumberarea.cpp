@@ -16,7 +16,13 @@ QSize LineNumberArea::sizeHint() const
 void LineNumberArea::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    painter.fillRect(event->rect(), Qt::lightGray);
+    
+    // Set background color based on theme
+    if (codeEditor->isDarkTheme) {
+        painter.fillRect(event->rect(), QColor(45, 45, 45)); // Dark background
+    } else {
+        painter.fillRect(event->rect(), QColor(240, 240, 240)); // Light background
+    }
     
     QTextBlock block = codeEditor->firstVisibleBlock();
     int blockNumber = block.blockNumber();
@@ -26,9 +32,16 @@ void LineNumberArea::paintEvent(QPaintEvent *event)
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
-            painter.setPen(Qt::black);
-            painter.drawText(0, top, width() - 2, codeEditor->fontMetrics().height(),
-                             Qt::AlignRight, number);
+            
+            // Set text color based on theme
+            if (codeEditor->isDarkTheme) {
+                painter.setPen(QColor(180, 180, 180)); // Light gray text for dark theme
+            } else {
+                painter.setPen(Qt::black); // Black text for light theme
+            }
+            
+            painter.drawText(0, top, width() - 5, codeEditor->fontMetrics().height(),
+                            Qt::AlignRight, number);
         }
         
         block = block.next();
