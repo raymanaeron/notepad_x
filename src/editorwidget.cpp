@@ -306,3 +306,39 @@ void EditorWidget::selectAll()
 {
     if (textEditor) textEditor->selectAll();
 }
+
+void EditorWidget::zoomIn(int range)
+{
+    if (textEditor) {
+        textEditor->zoomIn(range);
+        emit zoomLevelChanged(textEditor->getCurrentZoomLevel());
+    }
+}
+
+void EditorWidget::zoomOut(int range)
+{
+    if (textEditor) {
+        textEditor->zoomOut(range);
+        emit zoomLevelChanged(textEditor->getCurrentZoomLevel());
+    }
+}
+
+void EditorWidget::resetZoom()
+{
+    if (textEditor) {
+        textEditor->resetZoom();
+        emit zoomLevelChanged(textEditor->getCurrentZoomLevel());
+    }
+}
+
+int EditorWidget::getCurrentZoomLevel() const
+{
+    return textEditor ? textEditor->getCurrentZoomLevel() : 0;
+}
+
+void EditorWidget::setZoomLevel(int level)
+{
+    if (textEditor) {
+        textEditor->setZoomLevel(level);
+    }
+}

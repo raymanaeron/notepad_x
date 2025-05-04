@@ -38,10 +38,18 @@ public:
     void paste();
     void selectAll();
 
+    // Add zoom methods
+    void zoomIn(int range = 1);
+    void zoomOut(int range = 1);
+    void resetZoom();
+    int getCurrentZoomLevel() const;
+    void setZoomLevel(int level);
+
 signals:
     void fileNameChanged(const QString &fileName);
     void modificationChanged(bool modified);
     void languageChanged(const QString &language);
+    void zoomLevelChanged(int level);
 
 private slots:
     void documentWasModified();

@@ -11,28 +11,35 @@ class CodeEditor : public QPlainTextEdit
 
 public:
     explicit CodeEditor(QWidget *parent = nullptr);
-    
-    // Expose the protected setViewportMargins method
-    void setEditorMargins(int left, int top, int right, int bottom);
-    
-    // Method for line number area to use during painting
+
+    void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
-    
-    // Method to update line number area colors based on theme
+    void setEditorMargins(int left, int top, int right, int bottom);
     void updateLineNumberAreaForTheme(bool isDark);
     
+    // Add zoom functionality
+    void zoomIn(int range = 1);
+    void zoomOut(int range = 1);
+    void resetZoom();
+    int getCurrentZoomLevel() const { return zoomLevel; }
+    void setZoomLevel(int level);
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
-    
+    // Add wheel event override for Ctrl+mouse wheel zoom
+    void wheelEvent(QWheelEvent *e) override;
+
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &rect, int dy);
-    
+
 private:
     LineNumberArea *lineNumberArea;
-    bool isDarkTheme;
-    
+    int zoomLevel; // Track the current zoom level
+    const int DEFAULT_FONT_SIZE = 10; // Default font size in points
+    bool isDarkTheme; // Keep track of current theme
+
     friend class LineNumberArea;
 };
 

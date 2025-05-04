@@ -24,7 +24,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
-      findReplaceDialog(nullptr), goToLineDialog(nullptr)
+      findReplaceDialog(nullptr), goToLineDialog(nullptr), currentZoomLevel(0)
 {
     setWindowTitle("Notepad X");
     
@@ -237,6 +237,24 @@ void MainWindow::createMenus()
     themeMenu->addAction(darkThemeAction);
     connect(darkThemeAction, &QAction::triggered, this, &MainWindow::applyDarkTheme);
     
+    // Add zoom actions to View menu
+    viewMenu->addSeparator();
+    
+    QAction *zoomInAction = new QAction("Zoom &In", this);
+    zoomInAction->setShortcut(QKeySequence::ZoomIn);  // This maps to Ctrl++ on Windows/Linux and Cmd++ on Mac
+    viewMenu->addAction(zoomInAction);
+    connect(zoomInAction, &QAction::triggered, this, &MainWindow::zoomIn);
+    
+    QAction *zoomOutAction = new QAction("Zoom &Out", this);
+    zoomOutAction->setShortcut(QKeySequence::ZoomOut);  // This maps to Ctrl+- on Windows/Linux and Cmd+- on Mac
+    viewMenu->addAction(zoomOutAction);
+    connect(zoomOutAction, &QAction::triggered, this, &MainWindow::zoomOut);
+    
+    QAction *resetZoomAction = new QAction("&Reset Zoom", this);
+    resetZoomAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_0));  // Ctrl+0
+    viewMenu->addAction(resetZoomAction);
+    connect(resetZoomAction, &QAction::triggered, this, &MainWindow::resetZoom);
+    
     // Create Language menu
     languageMenu = menuBar()->addMenu("&Language");
     languageActionGroup = new QActionGroup(this);
@@ -439,6 +457,24 @@ void MainWindow::createNewTab()
         editor->setLightTheme();
     }
     
+    // Apply current zoom level to the new tab
+    editor->setZoomLevel(currentZoomLevel);
+    
+    // Connect the zoomLevelChanged signal
+    connect(editor, &EditorWidget::zoomLevelChanged, this, [this](int level) {
+        currentZoomLevel = level;
+        // Apply new zoom level to all editors
+        for (int i = 0; i < tabWidget->count(); ++i) {
+            EditorWidget *ed = qobject_cast<EditorWidget*>(tabWidget->widget(i));
+            if (ed && ed->getCurrentZoomLevel() != level) {
+                ed->setZoomLevel(level);
+            }
+        }
+        // Save the zoom level in settings
+        QSettings settings("NotepadX", "Editor");
+        settings.setValue("zoomLevel", currentZoomLevel);
+    });
+    
     // Update the language menu to reflect the current editor
     updateLanguageMenu();
     
@@ -534,8 +570,23 @@ bool MainWindow::openFileHelper(const QString &fileName)
             editor->setLightTheme();
         }
         
-        // Connect editor signals for cursor position tracking
-        connectEditorSignals();
+        // Apply current zoom level to the new tab
+        editor->setZoomLevel(currentZoomLevel);
+        
+        // Connect the zoomLevelChanged signal
+        connect(editor, &EditorWidget::zoomLevelChanged, this, [this](int level) {
+            currentZoomLevel = level;
+            // Apply new zoom level to all editors
+            for (int i = 0; i < tabWidget->count(); ++i) {
+                EditorWidget *ed = qobject_cast<EditorWidget*>(tabWidget->widget(i));
+                if (ed && ed->getCurrentZoomLevel() != level) {
+                    ed->setZoomLevel(level);
+                }
+            }
+            // Save the zoom level in settings
+            QSettings settings("NotepadX", "Editor");
+            settings.setValue("zoomLevel", currentZoomLevel);
+        });
         
         return true;
     } else {
@@ -884,6 +935,9 @@ void MainWindow::readSettings()
         applyLightTheme();
     }
     
+    // Restore zoom level
+    currentZoomLevel = settings.value("zoomLevel", 0).toInt();
+    
     // Only restore session files if that setting is enabled
     bool restoreSession = settings.value("restoreSession", true).toBool();
     if (restoreSession) {
@@ -961,6 +1015,9 @@ void MainWindow::writeSettings()
     
     // Save recent files
     settings.setValue("recentFiles", recentFiles);
+    
+    // Save zoom level
+    settings.setValue("zoomLevel", currentZoomLevel);
     
     // Save open files
     int validFileCount = 0;
@@ -1067,5 +1124,29 @@ void MainWindow::updateRecentFilesMenu()
         action->setStatusTip(file);
         connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
         recentFilesMenu->addAction(action);
+    }
+}
+
+void MainWindow::zoomIn()
+{
+    EditorWidget *editor = currentEditor();
+    if (editor) {
+        editor->zoomIn();
+    }
+}
+
+void MainWindow::zoomOut()
+{
+    EditorWidget *editor = currentEditor();
+    if (editor) {
+        editor->zoomOut();
+    }
+}
+
+void MainWindow::resetZoom()
+{
+    EditorWidget *editor = currentEditor();
+    if (editor) {
+        editor->resetZoom();
     }
 }

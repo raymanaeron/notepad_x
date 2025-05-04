@@ -3,7 +3,7 @@
 #include <QPainter>
 #include <QTextBlock>
 
-CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent), isDarkTheme(false)
+CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent), isDarkTheme(false), zoomLevel(0)
 {
     lineNumberArea = new LineNumberArea(this);
     
@@ -90,4 +90,80 @@ void CodeEditor::updateLineNumberAreaForTheme(bool isDark)
     
     // Force repaint of line number area
     lineNumberArea->update();
+}
+
+// Add the zoom methods
+void CodeEditor::zoomIn(int range)
+{
+    zoomLevel += range;
+    QFont font = this->font();
+    font.setPointSize(DEFAULT_FONT_SIZE + zoomLevel);
+    this->setFont(font);
+    
+    // Update line number area width after font size change
+    updateLineNumberAreaWidth(0);
+    lineNumberArea->setFont(font);
+}
+
+void CodeEditor::zoomOut(int range)
+{
+    zoomLevel -= range;
+    // Don't allow extremely small fonts
+    if (DEFAULT_FONT_SIZE + zoomLevel < 6) {
+        zoomLevel = 6 - DEFAULT_FONT_SIZE;
+    }
+    
+    QFont font = this->font();
+    font.setPointSize(DEFAULT_FONT_SIZE + zoomLevel);
+    this->setFont(font);
+    
+    // Update line number area width after font size change
+    updateLineNumberAreaWidth(0);
+    lineNumberArea->setFont(font);
+}
+
+void CodeEditor::resetZoom()
+{
+    zoomLevel = 0;
+    QFont font = this->font();
+    font.setPointSize(DEFAULT_FONT_SIZE);
+    this->setFont(font);
+    
+    // Update line number area width after font size change
+    updateLineNumberAreaWidth(0);
+    lineNumberArea->setFont(font);
+}
+
+void CodeEditor::setZoomLevel(int level)
+{
+    if (level != zoomLevel) {
+        zoomLevel = level;
+        // Don't allow extremely small fonts
+        if (DEFAULT_FONT_SIZE + zoomLevel < 6) {
+            zoomLevel = 6 - DEFAULT_FONT_SIZE;
+        }
+        
+        QFont font = this->font();
+        font.setPointSize(DEFAULT_FONT_SIZE + zoomLevel);
+        this->setFont(font);
+        
+        // Update line number area width after font size change
+        updateLineNumberAreaWidth(0);
+        lineNumberArea->setFont(font);
+    }
+}
+
+// Override wheel event to handle Ctrl+mouse wheel zoom
+void CodeEditor::wheelEvent(QWheelEvent *e)
+{
+    if (e->modifiers() & Qt::ControlModifier) {
+        if (e->angleDelta().y() > 0) {
+            zoomIn();
+        } else {
+            zoomOut();
+        }
+        e->accept();
+    } else {
+        QPlainTextEdit::wheelEvent(e);
+    }
 }

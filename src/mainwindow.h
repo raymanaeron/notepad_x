@@ -49,6 +49,11 @@ private slots:
     void openRecentFile();
     void clearRecentFiles();
     void updateRecentFilesMenu();
+    
+    // Add zoom slots
+    void zoomIn();
+    void zoomOut();
+    void resetZoom();
 
 private:
     QTabWidget *tabWidget;
@@ -71,6 +76,8 @@ private:
     // Dialogs
     FindReplaceDialog *findReplaceDialog;
     GoToLineDialog *goToLineDialog;
+    
+    int currentZoomLevel;
     
     void createMenus();
     void createToolBar();
