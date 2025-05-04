@@ -100,7 +100,7 @@ bool EditorWidget::loadFile(const QString &fileName)
 {
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Notepad X",
+        QMessageBox::warning(this, "NotepadX",
                              tr("Cannot read file %1:\n%2.")
                              .arg(QDir::toNativeSeparators(fileName))
                              .arg(file.errorString()));
@@ -144,7 +144,7 @@ bool EditorWidget::saveFile(const QString &fileName)
 {
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Notepad X",
+        QMessageBox::warning(this, "NotepadX",
                            tr("Cannot write file %1:\n%2.")
                            .arg(QDir::toNativeSeparators(fileName))
                            .arg(file.errorString()));
@@ -233,7 +233,7 @@ bool EditorWidget::maybeSave()
         return true;
         
     const QMessageBox::StandardButton ret =
-        QMessageBox::warning(this, "Notepad X",
+        QMessageBox::warning(this, "NotepadX",
                            "The document has been modified.\n"
                            "Do you want to save your changes?",
                            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);

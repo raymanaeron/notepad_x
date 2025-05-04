@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
     }
     
     // Set application metadata
-    QApplication::setApplicationName("Notepad X");
-    QApplication::setOrganizationName("Notepad X");
+    QApplication::setApplicationName("NotepadX");
+    QApplication::setOrganizationName("NotepadX");
     QApplication::setApplicationVersion("1.0.0");
     
     // Load appropriate app icon based on platform

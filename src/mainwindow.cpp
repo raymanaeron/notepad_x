@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
       findReplaceDialog(nullptr), goToLineDialog(nullptr), currentZoomLevel(0)
 {
-    setWindowTitle("Notepad X");
+    setWindowTitle("NotepadX");
 
     // Create tab widget first
     tabWidget = new QTabWidget(this);
@@ -772,7 +772,7 @@ void MainWindow::updateTabText(int index)
         if (editor->isModified())
             title += " *";
 
-        title += " - Notepad X";
+        title += " - NotepadX";
         setWindowTitle(title);
     }
 }
