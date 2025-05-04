@@ -4,14 +4,9 @@
 #include <QDebug>
 
 #ifdef Q_OS_WIN
-// On Windows, set the application to be a GUI application
-// without a console window
+// Windows-specific code for GUI application
 #include <windows.h>
-extern "C" {
-    // This sets the application type to Windows GUI
-    // 1 = GUI, 2 = Console
-    int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd);
-}
+// No need to declare WinMain manually, Qt will handle this with the WIN32 flag in CMakeLists.txt
 #endif
 
 int main(int argc, char *argv[])
@@ -23,14 +18,24 @@ int main(int argc, char *argv[])
     if (fontId != -1) {
         QStringList fontFamilies = QFontDatabase::applicationFontFamilies(fontId);
         if (!fontFamilies.isEmpty()) {
-            // The font is available as fontFamilies.at(0)
             qDebug() << "FontAwesome loaded:" << fontFamilies.at(0);
         }
     } else {
         qWarning() << "Failed to load FontAwesome";
     }
     
+    // Set application metadata
+    QApplication::setApplicationName("Notepad X");
+    QApplication::setOrganizationName("Notepad X");
+    QApplication::setApplicationVersion("1.0.0");
+    
+#ifdef Q_OS_MAC
+    // macOS-specific settings
+    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
+#endif
+    
     MainWindow window;
     window.show();
+    
     return app.exec();
 }

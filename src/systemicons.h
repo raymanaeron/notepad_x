@@ -29,10 +29,46 @@ public:
         else if (name == "redo")
             return QApplication::style()->standardIcon(QStyle::SP_ArrowForward);
 #elif defined(Q_OS_MAC)
-        // macOS-specific icons would go here
+        // macOS-specific icons
+        if (name == "file")
+            return QApplication::style()->standardIcon(QStyle::SP_FileIcon);
+        else if (name == "open")
+            return QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton);
+        else if (name == "save")
+            return QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton);
+        else if (name == "cut")
+            return QIcon::fromTheme("edit-cut", QApplication::style()->standardIcon(QStyle::SP_FileIcon));
+        else if (name == "copy")
+            return QIcon::fromTheme("edit-copy", QApplication::style()->standardIcon(QStyle::SP_FileIcon));
+        else if (name == "paste")
+            return QIcon::fromTheme("edit-paste", QApplication::style()->standardIcon(QStyle::SP_FileIcon));
+        else if (name == "undo")
+            return QIcon::fromTheme("edit-undo", QApplication::style()->standardIcon(QStyle::SP_ArrowBack));
+        else if (name == "redo")
+            return QIcon::fromTheme("edit-redo", QApplication::style()->standardIcon(QStyle::SP_ArrowForward));
 #else
-        // Linux/Unix would use theme icons
-        return QIcon::fromTheme(name);
+        // Linux/Unix use theme icons
+        QString iconName;
+        if (name == "file")
+            iconName = "document-new";
+        else if (name == "open")
+            iconName = "document-open";
+        else if (name == "save")
+            iconName = "document-save";
+        else if (name == "cut")
+            iconName = "edit-cut";
+        else if (name == "copy")
+            iconName = "edit-copy";
+        else if (name == "paste")
+            iconName = "edit-paste";
+        else if (name == "undo")
+            iconName = "edit-undo";
+        else if (name == "redo")
+            iconName = "edit-redo";
+        else
+            iconName = name;
+            
+        return QIcon::fromTheme(iconName, QApplication::style()->standardIcon(QStyle::SP_FileIcon));
 #endif
         // Default fallback
         return QIcon();
