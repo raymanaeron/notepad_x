@@ -54,6 +54,9 @@ private slots:
     void zoomIn();
     void zoomOut();
     void resetZoom();
+    
+    // About dialog slot
+    void showAboutDialog();
 
 private:
     QTabWidget *tabWidget;

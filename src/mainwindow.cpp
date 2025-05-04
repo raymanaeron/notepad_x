@@ -21,6 +21,7 @@
 #include <QStyle> // Add this to include QStyle
 #include <QSettings>
 #include <QStandardPaths>
+#include "fonticon.h" // Add this to include FontIcon
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
@@ -277,36 +278,44 @@ void MainWindow::createMenus()
     
     // Connect tab change signal to update language menu
     connect(tabWidget, &QTabWidget::currentChanged, this, &MainWindow::updateLanguageMenu);
+    
+    // Create Help menu
+    QMenu *helpMenu = menuBar()->addMenu("&Help");
+    
+    // About action
+    QAction *aboutAction = new QAction("&About", this);
+    helpMenu->addAction(aboutAction);
+    connect(aboutAction, &QAction::triggered, this, &MainWindow::showAboutDialog);
 }
 
 void MainWindow::createToolBar()
 {
     QToolBar *toolBar = addToolBar("Main Toolbar");
-    toolBar->setObjectName("mainToolBar"); // Add this line to set the object name
+    toolBar->setObjectName("mainToolBar"); // Add object name for settings
     toolBar->setMovable(false);
     toolBar->setIconSize(QSize(18, 18));
     
-    // New file action - has standard icon
+    // New file action - use FontAwesome icon
     QAction *newAction = toolBar->addAction("New");
-    newAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileIcon));
+    newAction->setIcon(FontIcon::icon(FontIcon::FA_FILE));
     connect(newAction, &QAction::triggered, this, &MainWindow::createNewTab);
     
-    // Open file action - has standard icon
+    // Open file action - use FontAwesome icon
     QAction *openAction = toolBar->addAction("Open");
-    openAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+    openAction->setIcon(FontIcon::icon(FontIcon::FA_FOLDER_OPEN));
     connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
     
-    // Save file action - has standard icon
+    // Save file action - use FontAwesome icon
     QAction *saveAction = toolBar->addAction("Save");
-    saveAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
+    saveAction->setIcon(FontIcon::icon(FontIcon::FA_SAVE));
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveFile);
     
     toolBar->addSeparator();
     
-    // For the clipboard operations, we'll use text + shortcut hints
+    // For the clipboard operations, we'll use FontAwesome icons
     // Cut action
     QAction *cutAction = toolBar->addAction("Cut");
-    // Display the shortcut as part of the tooltip
+    cutAction->setIcon(FontIcon::icon(FontIcon::FA_CUT));
     cutAction->setToolTip(QString("Cut (Ctrl+X)"));
     connect(cutAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -315,6 +324,7 @@ void MainWindow::createToolBar()
     
     // Copy action
     QAction *copyAction = toolBar->addAction("Copy");
+    copyAction->setIcon(FontIcon::icon(FontIcon::FA_COPY));
     copyAction->setToolTip(QString("Copy (Ctrl+C)"));
     connect(copyAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -323,6 +333,7 @@ void MainWindow::createToolBar()
     
     // Paste action
     QAction *pasteAction = toolBar->addAction("Paste");
+    pasteAction->setIcon(FontIcon::icon(FontIcon::FA_PASTE));
     pasteAction->setToolTip(QString("Paste (Ctrl+V)"));
     connect(pasteAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -333,6 +344,7 @@ void MainWindow::createToolBar()
     
     // Undo action
     QAction *undoAction = toolBar->addAction("Undo");
+    undoAction->setIcon(FontIcon::icon(FontIcon::FA_UNDO));
     undoAction->setToolTip(QString("Undo (Ctrl+Z)"));
     connect(undoAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -341,6 +353,7 @@ void MainWindow::createToolBar()
     
     // Redo action
     QAction *redoAction = toolBar->addAction("Redo");
+    redoAction->setIcon(FontIcon::icon(FontIcon::FA_REPEAT));
     redoAction->setToolTip(QString("Redo (Ctrl+Y)"));
     connect(redoAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
@@ -1156,4 +1169,11 @@ void MainWindow::resetZoom()
         editor->resetZoom();
         updateStatusBar();
     }
+}
+
+void MainWindow::showAboutDialog()
+{
+    QMessageBox::about(this, "About NotepadX",
+                      "NotepadX - a cross platform text editor\n"
+                      "Copyright (c) 2025 by Rayman Aeron");
 }

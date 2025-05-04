@@ -84,8 +84,26 @@ set(SOURCES
 # Remove the resources.qrc from the project since we're using system icons
 set(RESOURCE_FILES "")
 
-add_executable(NotepadX
-    ${SOURCES}
-)
+# Set GUI application properties for different platforms
+if(WIN32)
+    # Create a GUI application without console window on Windows
+    add_executable(NotepadX WIN32 ${SOURCES})
+elseif(APPLE)
+    # On macOS, create a regular .app bundle
+    add_executable(NotepadX MACOSX_BUNDLE ${SOURCES})
+else()
+    # Regular executable for Linux and other platforms
+    add_executable(NotepadX ${SOURCES})
+endif()
+
+# For macOS, set additional bundle properties if needed
+if(APPLE)
+    set_target_properties(NotepadX PROPERTIES
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.notepadx.app"
+        MACOSX_BUNDLE_BUNDLE_NAME "NotepadX"
+        MACOSX_BUNDLE_BUNDLE_VERSION "1.0"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
+    )
+endif()
 
 target_link_libraries(NotepadX PRIVATE Qt6::Widgets)
