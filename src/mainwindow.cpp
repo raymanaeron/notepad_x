@@ -1206,17 +1206,37 @@ void MainWindow::resetZoom()
 
 void MainWindow::showAboutDialog()
 {
-    // Check if SVG files exist in the filesystem
-    QString projectDir = QCoreApplication::applicationDirPath();
-    QDir iconDir(projectDir + "/../icons");
-    
-    QString message = "NotepadX - a cross platform text editor\n\n"
+    QString message = "NotepadX - a cross platform text editor\n"
                      "Copyright (c) 2025 by Rayman Aeron\n\n";
     
-    // Debug info
+    // Debug info for SVG icons
+    QString appDir = QCoreApplication::applicationDirPath();
+    QDir iconDir(appDir + "/icons");
+    
+    message += "Application directory: " + appDir + "\n";
     message += "SVG icons directory exists: " + QString(iconDir.exists() ? "Yes" : "No") + "\n";
+    
     if (iconDir.exists()) {
-        message += "SVG files found: " + QString::number(iconDir.entryList(QStringList() << "*.svg", QDir::Files).count());
+        QStringList svgFiles = iconDir.entryList(QStringList() << "*.svg", QDir::Files);
+        message += "SVG files found (" + QString::number(svgFiles.count()) + "):\n";
+        
+        for (const QString& file : svgFiles) {
+            message += " - " + file + "\n";
+        }
+    }
+    
+    // Check resource SVGs
+    message += "\nResource path icons:\n";
+    QDir resourceDir(":/icons");
+    if (resourceDir.exists()) {
+        QStringList resSvgFiles = resourceDir.entryList(QStringList() << "*.svg", QDir::Files);
+        message += "Resource SVG files found: " + QString::number(resSvgFiles.count()) + "\n";
+        
+        for (const QString& file : resSvgFiles) {
+            message += " - " + file + "\n";
+        }
+    } else {
+        message += "Resource icons dir doesn't exist\n";
     }
     
     QMessageBox::about(this, "About NotepadX", message);

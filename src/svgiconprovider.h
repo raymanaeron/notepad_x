@@ -5,6 +5,8 @@
 #include <QString>
 #include <QDebug>
 #include <QFile>
+#include <QDir>
+#include <QCoreApplication>
 
 class SvgIconProvider
 {
@@ -12,28 +14,27 @@ public:
     // Get SVG icon by name
     static QIcon getIcon(const QString &iconName)
     {
+        // First try from resources
         QString iconPath = QString(":/icons/%1.svg").arg(iconName);
+        qDebug() << "Trying to load SVG from resources:" << iconPath;
         
-        try {
-            // Verify file exists
-            QFile file(iconPath);
-            if (!file.exists()) {
-                qDebug() << "SVG file not found:" << iconPath;
-                return QIcon();
-            }
-            
-            // Return a simple QIcon without SVG validation
-            // This avoids crashes if QtSvg module has issues
+        if (QFile::exists(iconPath)) {
+            qDebug() << "Found SVG in resources";
             return QIcon(iconPath);
         }
-        catch (const std::exception& e) {
-            qDebug() << "Exception while loading SVG:" << e.what();
-            return QIcon();
+        
+        // If not found in resources, try from local directory
+        QString localPath = QDir(QCoreApplication::applicationDirPath()).filePath(
+            QString("icons/%1.svg").arg(iconName));
+        qDebug() << "Trying to load SVG from local path:" << localPath;
+        
+        if (QFile::exists(localPath)) {
+            qDebug() << "Found SVG in local path";
+            return QIcon(localPath);
         }
-        catch (...) {
-            qDebug() << "Unknown exception while loading SVG";
-            return QIcon();
-        }
+        
+        qDebug() << "SVG icon not found in resources or local path";
+        return QIcon(); // Return empty icon
     }
 };
 

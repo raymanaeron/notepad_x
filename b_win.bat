@@ -1,3 +1,4 @@
+REM filepath: c:\Code\notepad_x\b_win.bat
 @echo off
 setlocal
 
@@ -46,22 +47,30 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Copy icons folder to the executable directory
+REM Copy icons folder to build directory
 echo Copying icons to executable directory...
 if not exist icons mkdir icons
 xcopy /Y /E /I "..\..\icons" "icons\"
+
+REM Verify icons were copied
+dir icons\*.svg
 
 echo Deploying Qt runtime dependencies with windeployqt...
 REM Add Qt bin directory to PATH temporarily for windeployqt to find the platform plugins
 set PATH=%QT_PATH%\bin;%PATH%
 
-REM First, manually copy the platform plugins
+REM First, manually copy the platform plugins and SVG plugin
 echo Manually copying essential Qt plugins...
 if not exist platforms mkdir platforms
 copy "%QT_PATH%\plugins\platforms\qwindows.dll" platforms\
 copy "%QT_PATH%\bin\Qt6Core.dll" .
 copy "%QT_PATH%\bin\Qt6Gui.dll" .
 copy "%QT_PATH%\bin\Qt6Widgets.dll" .
+copy "%QT_PATH%\bin\Qt6Svg.dll" .
+
+REM Create imageformats directory and copy SVG plugin
+if not exist imageformats mkdir imageformats
+copy "%QT_PATH%\plugins\imageformats\qsvg.dll" imageformats\
 
 REM Now try windeployqt again with simpler options
 echo Running windeployqt...
@@ -74,4 +83,3 @@ if errorlevel 1 (
 
 echo [SUCCESS] %BUILD_TYPE% build and deployment complete.
 cd ..\..\
-
