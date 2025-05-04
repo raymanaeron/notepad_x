@@ -17,12 +17,15 @@ void LineNumberArea::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     
-    // Set background color based on theme
+    // Set VS Code-like background color based on theme
     if (codeEditor->isDarkTheme) {
-        painter.fillRect(event->rect(), QColor(45, 45, 45)); // Dark background
+        painter.fillRect(event->rect(), QColor(30, 30, 30)); // VS Code dark theme gutter
     } else {
-        painter.fillRect(event->rect(), QColor(240, 240, 240)); // Light background
+        painter.fillRect(event->rect(), QColor(245, 245, 245)); // VS Code light theme gutter
     }
+    
+    // Use the same font as the editor for line numbers
+    painter.setFont(codeEditor->font());
     
     QTextBlock block = codeEditor->firstVisibleBlock();
     int blockNumber = block.blockNumber();
@@ -33,11 +36,11 @@ void LineNumberArea::paintEvent(QPaintEvent *event)
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
             
-            // Set text color based on theme
+            // VS Code-like line number colors
             if (codeEditor->isDarkTheme) {
-                painter.setPen(QColor(180, 180, 180)); // Light gray text for dark theme
+                painter.setPen(QColor(133, 133, 133)); // VS Code dark theme line numbers
             } else {
-                painter.setPen(Qt::black); // Black text for light theme
+                painter.setPen(QColor(110, 110, 110)); // VS Code light theme line numbers
             }
             
             painter.drawText(0, top, width() - 5, codeEditor->fontMetrics().height(),

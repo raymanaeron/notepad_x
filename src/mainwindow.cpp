@@ -425,21 +425,21 @@ void MainWindow::applyDarkTheme()
     // Set dark theme for the application
     qApp->setStyle("Fusion");
     
-    // Create and apply dark theme palette
+    // Create and apply VS Code-like dark theme palette
     QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::WindowText, Qt::white);
-    darkPalette.setColor(QPalette::Base, QColor(35, 35, 35));
-    darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::ToolTipBase, QColor(25, 25, 25));
-    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-    darkPalette.setColor(QPalette::Text, Qt::white);
-    darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::ButtonText, Qt::white);
-    darkPalette.setColor(QPalette::BrightText, Qt::red);
-    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
-    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
-    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+    darkPalette.setColor(QPalette::Window, QColor(30, 30, 30));          // VS Code background
+    darkPalette.setColor(QPalette::WindowText, QColor(220, 220, 220));   // VS Code text
+    darkPalette.setColor(QPalette::Base, QColor(30, 30, 30));            // VS Code editor background
+    darkPalette.setColor(QPalette::AlternateBase, QColor(45, 45, 45));   // Slightly lighter
+    darkPalette.setColor(QPalette::ToolTipBase, QColor(30, 30, 30));     // Tooltip background
+    darkPalette.setColor(QPalette::ToolTipText, QColor(220, 220, 220));  // Tooltip text
+    darkPalette.setColor(QPalette::Text, QColor(220, 220, 220));         // Text color
+    darkPalette.setColor(QPalette::Button, QColor(45, 45, 45));          // Button background
+    darkPalette.setColor(QPalette::ButtonText, QColor(220, 220, 220));   // Button text
+    darkPalette.setColor(QPalette::BrightText, QColor(255, 255, 255));   // Bright text
+    darkPalette.setColor(QPalette::Link, QColor(0, 122, 204));           // VS Code blue
+    darkPalette.setColor(QPalette::Highlight, QColor(0, 122, 204));      // VS Code selection blue
+    darkPalette.setColor(QPalette::HighlightedText, QColor(255, 255, 255)); // White text on selection
     
     qApp->setPalette(darkPalette);
     

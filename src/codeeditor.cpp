@@ -65,10 +65,10 @@ void CodeEditor::highlightCurrentLine()
     if (!isReadOnly()) {
         QTextEdit::ExtraSelection selection;
         
-        // Different highlight colors based on theme
+        // VS Code-like current line highlighting
         QColor lineColor = isDarkTheme ? 
-                         QColor(45, 45, 45) : // Darker for dark theme
-                         QColor(Qt::yellow).lighter(160); // Lighter for light theme
+                         QColor(40, 40, 40) :      // VS Code dark theme current line
+                         QColor(240, 240, 240);    // VS Code light theme current line
         
         selection.format.setBackground(lineColor);
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);

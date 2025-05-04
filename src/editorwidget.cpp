@@ -258,14 +258,14 @@ void EditorWidget::setDarkTheme()
 {
     isDarkTheme = true;
     
-    // Set dark theme colors for editor
+    // Set VS Code-like dark theme colors for editor
     QPalette darkEditorPalette;
-    darkEditorPalette.setColor(QPalette::Base, QColor(35, 35, 35));
-    darkEditorPalette.setColor(QPalette::Text, Qt::white);
+    darkEditorPalette.setColor(QPalette::Base, QColor(30, 30, 30));      // VS Code dark background
+    darkEditorPalette.setColor(QPalette::Text, QColor(220, 220, 220));   // VS Code light text
     textEditor->setPalette(darkEditorPalette);
     
-    // Custom dark background color for editor
-    textEditor->setStyleSheet("QPlainTextEdit { background-color: #232323; color: #ffffff; }");
+    // Custom VS Code-like dark background color for editor
+    textEditor->setStyleSheet("QPlainTextEdit { background-color: #1E1E1E; color: #DCDCDC; }");
     
     // Update highlighter with dark theme colors
     if (highlighter) {
