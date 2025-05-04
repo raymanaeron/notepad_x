@@ -224,7 +224,7 @@ void MainWindow::createMenus()
     // Light theme action
     QAction *lightThemeAction = new QAction("&Light Theme", this);
     lightThemeAction->setCheckable(true);
-    lightThemeAction->setChecked(!isDarkThemeActive); // Default is light theme
+    lightThemeAction->setChecked(!isDarkThemeActive); // Set based on the stored preference
     themeActionGroup->addAction(lightThemeAction);
     themeMenu->addAction(lightThemeAction);
     connect(lightThemeAction, &QAction::triggered, this, &MainWindow::applyLightTheme);
@@ -232,7 +232,7 @@ void MainWindow::createMenus()
     // Dark theme action
     QAction *darkThemeAction = new QAction("&Dark Theme", this);
     darkThemeAction->setCheckable(true);
-    darkThemeAction->setChecked(isDarkThemeActive);
+    darkThemeAction->setChecked(isDarkThemeActive); // Set based on the stored preference
     themeActionGroup->addAction(darkThemeAction);
     themeMenu->addAction(darkThemeAction);
     connect(darkThemeAction, &QAction::triggered, this, &MainWindow::applyDarkTheme);
@@ -722,6 +722,10 @@ void MainWindow::applyLightTheme()
             editor->setLightTheme();
         }
     }
+    
+    // Save the theme preference immediately
+    QSettings settings("NotepadX", "Editor");
+    settings.setValue("darkTheme", isDarkThemeActive);
 }
 
 void MainWindow::applyDarkTheme()
@@ -758,6 +762,10 @@ void MainWindow::applyDarkTheme()
             editor->setDarkTheme();
         }
     }
+    
+    // Save the theme preference immediately
+    QSettings settings("NotepadX", "Editor");
+    settings.setValue("darkTheme", isDarkThemeActive);
 }
 
 void MainWindow::showFindReplaceDialog()
@@ -845,6 +853,17 @@ void MainWindow::readSettings()
     
     // Restore theme setting
     isDarkThemeActive = settings.value("darkTheme", false).toBool();
+    
+    // Update theme menu items to match the loaded preference
+    if (themeActionGroup) {
+        for (QAction* action : themeActionGroup->actions()) {
+            if ((action->text() == "&Light Theme" && !isDarkThemeActive) || 
+                (action->text() == "&Dark Theme" && isDarkThemeActive)) {
+                action->setChecked(true);
+                break;
+            }
+        }
+    }
     
     // Restore recent files list with validation
     recentFiles = settings.value("recentFiles").toStringList();
