@@ -10,7 +10,7 @@
 #include <QDir>
 #include <QFontDatabase>
 
-EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile(""), isDarkTheme(false)
+EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), currentFilePath(""), usingDarkTheme(false)
 {
     // Create layout
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -32,6 +32,9 @@ EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile(""), isDa
     // Connect signals for document modification
     connect(textEditor->document(), &QTextDocument::contentsChanged,
             this, &EditorWidget::documentWasModified);
+    
+    // Initialize editor-specific settings and connections
+    initEditor();
 }
 
 void EditorWidget::setupEditor()
@@ -85,6 +88,14 @@ void EditorWidget::setupEditor()
     textEditor->setLineWrapMode(QPlainTextEdit::NoWrap);
 }
 
+void EditorWidget::initEditor()
+{
+    // Connect CodeEditor's zoomLevelChanged signal to our zoomLevelChanged signal
+    connect(textEditor, &CodeEditor::zoomLevelChanged, this, [this](int level) {
+        emit zoomLevelChanged(level);
+    });
+}
+
 bool EditorWidget::loadFile(const QString &fileName)
 {
     QFile file(fileName);
@@ -112,17 +123,17 @@ bool EditorWidget::loadFile(const QString &fileName)
 
 bool EditorWidget::save()
 {
-    if (isUntitled()) {
+    if (currentFilePath.isEmpty()) {
         return saveAs();
     } else {
-        return saveFile(curFile);
+        return saveFile(currentFilePath);
     }
 }
 
 bool EditorWidget::saveAs()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Save As", curFile.isEmpty() ? 
-                                                  QDir::homePath() : curFile);
+    QString fileName = QFileDialog::getSaveFileName(this, "Save As", currentFilePath.isEmpty() ? 
+                                                  QDir::homePath() : currentFilePath);
     if (fileName.isEmpty())
         return false;
         
@@ -155,9 +166,9 @@ bool EditorWidget::saveFile(const QString &fileName)
 
 void EditorWidget::setCurrentFile(const QString &fileName)
 {
-    curFile = QFileInfo(fileName).canonicalFilePath();
+    currentFilePath = QFileInfo(fileName).canonicalFilePath();
     textEditor->document()->setModified(false);
-    emit fileNameChanged(curFile);
+    emit fileNameChanged(currentFilePath);
     emit modificationChanged(false);
 }
 
@@ -170,8 +181,8 @@ void EditorWidget::updateHighlighter()
     }
     
     // Create new highlighter based on file extension
-    if (!curFile.isEmpty()) {
-        highlighter = HighlighterFactory::instance().createHighlighterForFile(curFile, textEditor->document());
+    if (!currentFilePath.isEmpty()) {
+        highlighter = HighlighterFactory::instance().createHighlighterForFile(currentFilePath, textEditor->document());
     } else {
         // Default highlighter for new files - None (plain text)
         highlighter = HighlighterFactory::instance().createHighlighter("None", textEditor->document());
@@ -189,7 +200,7 @@ void EditorWidget::setLanguage(const QString &language)
     highlighter = HighlighterFactory::instance().createHighlighter(language, textEditor->document());
     
     // Apply theme-specific colors if we're in dark mode
-    if (isDarkTheme && highlighter) {
+    if (usingDarkTheme && highlighter) {
         highlighter->setDarkTheme(true);
     }
     
@@ -237,7 +248,7 @@ bool EditorWidget::maybeSave()
 
 void EditorWidget::setLightTheme()
 {
-    isDarkTheme = false;
+    usingDarkTheme = false;
     
     // Set light theme colors for editor
     QPalette editorPalette;
@@ -257,7 +268,7 @@ void EditorWidget::setLightTheme()
 
 void EditorWidget::setDarkTheme()
 {
-    isDarkTheme = true;
+    usingDarkTheme = true;
     
     // Set VS Code-like dark theme colors for editor
     QPalette darkEditorPalette;

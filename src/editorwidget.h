@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QString>
+#include <QVBoxLayout>  // Add this include for QVBoxLayout
 
 class CodeEditor;
 class SyntaxHighlighter;
@@ -17,8 +18,8 @@ public:
     bool loadFile(const QString &fileName);
     bool save();
     bool saveAs();
-    QString currentFile() const { return curFile; }
-    bool isUntitled() const { return curFile.isEmpty(); }
+    QString currentFile() const { return currentFilePath; }  // Changed from curFile to currentFilePath
+    bool isUntitled() const { return currentFilePath.isEmpty(); }  // Changed from curFile to currentFilePath
     bool isModified() const;
     void setModified(bool modified);
     bool maybeSave();
@@ -26,11 +27,12 @@ public:
     QString currentLanguage() const;
     void setLightTheme();
     void setDarkTheme();
+    bool isDarkTheme() const { return usingDarkTheme; }
     
     // Add accessor method for textEditor
     CodeEditor* editor() const { return textEditor; }
     
-    // Declare edit operation methods (implementation moved to cpp file)
+    // Declare edit operation methods
     void undo();
     void redo();
     void cut();
@@ -56,14 +58,17 @@ private slots:
 
 private:
     CodeEditor *textEditor;
-    QString curFile;
+    QVBoxLayout *layout;
+    QString currentFilePath;
+    QString currentLang;
     SyntaxHighlighter *highlighter;
-    bool isDarkTheme;
+    bool usingDarkTheme;
     
     void setupEditor();
     bool saveFile(const QString &fileName);
     void setCurrentFile(const QString &fileName);
     void updateHighlighter();
+    void initEditor(); // Add this declaration for the initEditor() method
 };
 
 #endif // EDITORWIDGET_H

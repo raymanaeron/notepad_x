@@ -103,6 +103,8 @@ void CodeEditor::zoomIn(int range)
     // Update line number area width after font size change
     updateLineNumberAreaWidth(0);
     lineNumberArea->setFont(font);
+    
+    emit zoomLevelChanged(zoomLevel); // Emit signal
 }
 
 void CodeEditor::zoomOut(int range)
@@ -120,6 +122,8 @@ void CodeEditor::zoomOut(int range)
     // Update line number area width after font size change
     updateLineNumberAreaWidth(0);
     lineNumberArea->setFont(font);
+    
+    emit zoomLevelChanged(zoomLevel); // Emit signal
 }
 
 void CodeEditor::resetZoom()
@@ -159,8 +163,10 @@ void CodeEditor::wheelEvent(QWheelEvent *e)
     if (e->modifiers() & Qt::ControlModifier) {
         if (e->angleDelta().y() > 0) {
             zoomIn();
+            emit zoomLevelChanged(zoomLevel); // Emit signal
         } else {
             zoomOut();
+            emit zoomLevelChanged(zoomLevel); // Emit signal
         }
         e->accept();
     } else {

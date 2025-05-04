@@ -251,7 +251,7 @@ void MainWindow::createMenus()
     connect(zoomOutAction, &QAction::triggered, this, &MainWindow::zoomOut);
     
     QAction *resetZoomAction = new QAction("&Reset Zoom", this);
-    resetZoomAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_0));  // Ctrl+0
+    resetZoomAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_0));  // Ctrl+0 (using | instead of +)
     viewMenu->addAction(resetZoomAction);
     connect(resetZoomAction, &QAction::triggered, this, &MainWindow::resetZoom);
     

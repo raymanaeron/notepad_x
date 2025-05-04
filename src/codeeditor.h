@@ -24,6 +24,9 @@ public:
     int getCurrentZoomLevel() const { return zoomLevel; }
     void setZoomLevel(int level);
 
+signals:
+    void zoomLevelChanged(int zoomLevel); // Add this signal
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
     // Add wheel event override for Ctrl+mouse wheel zoom
