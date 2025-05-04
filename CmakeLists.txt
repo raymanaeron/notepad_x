@@ -25,6 +25,10 @@ set(SOURCES
     src/linenumberarea.h
     src/codeeditor.cpp
     src/codeeditor.h
+    src/findreplacedialog.cpp
+    src/findreplacedialog.h
+    src/gotolinedialog.cpp
+    src/gotolinedialog.h
     src/highlighting/syntaxhighlighter.cpp
     src/highlighting/syntaxhighlighter.h
     src/highlighting/languagedata.cpp

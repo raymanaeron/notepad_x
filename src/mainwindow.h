@@ -6,6 +6,8 @@
 
 class EditorWidget;
 class QActionGroup;
+class FindReplaceDialog;
+class GoToLineDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -31,6 +33,10 @@ private slots:
     void updateLanguageMenu();
     void applyLightTheme();
     void applyDarkTheme();
+    
+    // New slots for Find/Replace and Go to Line
+    void showFindReplaceDialog();
+    void showGoToLineDialog();
 
 private:
     QTabWidget *tabWidget;
@@ -39,6 +45,10 @@ private:
     QActionGroup *languageActionGroup;
     QActionGroup *themeActionGroup;
     bool isDarkThemeActive;  // Track the currently active theme
+    
+    // Dialogs
+    FindReplaceDialog *findReplaceDialog;
+    GoToLineDialog *goToLineDialog;
     
     void createActions();
     void createMenus();

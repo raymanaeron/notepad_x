@@ -1,6 +1,10 @@
 #include "mainwindow.h"
 #include "editorwidget.h" 
 #include "highlighting/highlighterfactory.h"
+#include "findreplacedialog.h"
+#include "gotolinedialog.h"
+#include "codeeditor.h" // Add this to include the CodeEditor class definition
+#include <QPlainTextEdit> // Add this to include QPlainTextEdit
 #include <QShortcut>
 #include <QTabBar>
 #include <QMenuBar>
@@ -14,7 +18,8 @@
 #include <QStatusBar>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false)
+    : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
+      findReplaceDialog(nullptr), goToLineDialog(nullptr)
 {
     setWindowTitle("Notepad X");
     resize(800, 600);
@@ -41,6 +46,14 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    // Clean up dialogs
+    if (findReplaceDialog) {
+        delete findReplaceDialog;
+    }
+    
+    if (goToLineDialog) {
+        delete goToLineDialog;
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -159,6 +172,21 @@ void MainWindow::createMenus()
         EditorWidget *editor = currentEditor();
         if (editor) editor->selectAll();
     });
+    
+    // Add separator for Find/Replace and Go to Line
+    editMenu->addSeparator();
+    
+    // Find and Replace action
+    QAction *findReplaceAction = new QAction("&Find and Replace...", this);
+    findReplaceAction->setShortcut(QKeySequence::Find);
+    editMenu->addAction(findReplaceAction);
+    connect(findReplaceAction, &QAction::triggered, this, &MainWindow::showFindReplaceDialog);
+    
+    // Go to Line action
+    QAction *goToLineAction = new QAction("&Go to Line...", this);
+    goToLineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_G));
+    editMenu->addAction(goToLineAction);
+    connect(goToLineAction, &QAction::triggered, this, &MainWindow::showGoToLineDialog);
     
     // Create View menu with Theme submenu (moved before Language menu)
     QMenu *viewMenu = menuBar()->addMenu("&View");
@@ -529,4 +557,52 @@ void MainWindow::applyDarkTheme()
             editor->setDarkTheme();
         }
     }
+}
+
+void MainWindow::showFindReplaceDialog()
+{
+    if (!ensureHasOpenTab())
+        return;
+        
+    EditorWidget *editor = currentEditor();
+    if (!editor)
+        return;
+        
+    // Create the dialog if it doesn't exist
+    if (!findReplaceDialog) {
+        findReplaceDialog = new FindReplaceDialog(this);
+    }
+    
+    // CodeEditor inherits from QPlainTextEdit, so we can use static_cast safely
+    // or just pass it directly since it IS a QPlainTextEdit
+    findReplaceDialog->setEditor(editor->editor());
+    
+    // Show the dialog
+    findReplaceDialog->show();
+    findReplaceDialog->raise();
+    findReplaceDialog->activateWindow();
+}
+
+void MainWindow::showGoToLineDialog()
+{
+    if (!ensureHasOpenTab())
+        return;
+        
+    EditorWidget *editor = currentEditor();
+    if (!editor)
+        return;
+        
+    // Create the dialog if it doesn't exist
+    if (!goToLineDialog) {
+        goToLineDialog = new GoToLineDialog(this);
+    }
+    
+    // CodeEditor inherits from QPlainTextEdit, so we can use static_cast safely
+    // or just pass it directly since it IS a QPlainTextEdit
+    goToLineDialog->setEditor(editor->editor());
+    
+    // Show the dialog
+    goToLineDialog->show();
+    goToLineDialog->raise();
+    goToLineDialog->activateWindow();
 }
