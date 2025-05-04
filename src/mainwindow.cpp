@@ -16,6 +16,9 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QStatusBar>
+#include <QToolBar>
+#include <QLabel>
+#include <QStyle> // Add this to include QStyle
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
@@ -32,13 +35,18 @@ MainWindow::MainWindow(QWidget *parent)
     
     // Connect the tabCloseRequested signal
     connect(tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::onTabCloseRequested);
-    connect(tabWidget, &QTabWidget::currentChanged, this, &MainWindow::updateTabText);
+    connect(tabWidget, &QTabWidget::currentChanged, this, [this](int index) {
+        updateTabText(index);
+        updateStatusBar();
+        
+        // Connect to the new editor's cursor position changed signal
+        connectEditorSignals();
+    });
     
-    // Create status bar
-    statusBar();
-    
-    // Create menus and actions
+    // Create menus, toolbars and status bar
     createMenus();
+    createToolBar();
+    createStatusBar();
     
     // Create initial tab
     createNewTab();
@@ -234,6 +242,136 @@ void MainWindow::createMenus()
     connect(tabWidget, &QTabWidget::currentChanged, this, &MainWindow::updateLanguageMenu);
 }
 
+void MainWindow::createToolBar()
+{
+    QToolBar *toolBar = addToolBar("Main Toolbar");
+    toolBar->setMovable(false);
+    toolBar->setIconSize(QSize(18, 18));
+    
+    // New file action
+    QAction *newAction = toolBar->addAction("New");
+    newAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileIcon));
+    connect(newAction, &QAction::triggered, this, &MainWindow::createNewTab);
+    
+    // Open file action
+    QAction *openAction = toolBar->addAction("Open");
+    openAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+    connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
+    
+    // Save file action
+    QAction *saveAction = toolBar->addAction("Save");
+    saveAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
+    connect(saveAction, &QAction::triggered, this, &MainWindow::saveFile);
+    
+    toolBar->addSeparator();
+    
+    // Cut action with text-only button
+    QAction *cutAction = toolBar->addAction("Cut");
+    connect(cutAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->cut();
+    });
+    
+    // Copy action with text-only button
+    QAction *copyAction = toolBar->addAction("Copy");
+    connect(copyAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->copy();
+    });
+    
+    // Paste action with text-only button
+    QAction *pasteAction = toolBar->addAction("Paste");
+    connect(pasteAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->paste();
+    });
+    
+    toolBar->addSeparator();
+    
+    // Undo action with text-only button
+    QAction *undoAction = toolBar->addAction("Undo");
+    connect(undoAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->undo();
+    });
+    
+    // Redo action with text-only button
+    QAction *redoAction = toolBar->addAction("Redo");
+    connect(redoAction, &QAction::triggered, this, [this]() {
+        EditorWidget *editor = currentEditor();
+        if (editor) editor->redo();
+    });
+}
+
+void MainWindow::createStatusBar()
+{
+    // Status bar has already been created in constructor with statusBar()
+    // Just add permanent widgets to it
+    lineColumnLabel = new QLabel("Line: 1, Column: 1", this);
+    lineColumnLabel->setMinimumWidth(150);
+    statusBar()->addPermanentWidget(lineColumnLabel);
+    
+    modifiedLabel = new QLabel("", this);
+    modifiedLabel->setMinimumWidth(80);
+    statusBar()->addPermanentWidget(modifiedLabel);
+    
+    filenameLabel = new QLabel("", this);
+    filenameLabel->setMinimumWidth(300);
+    statusBar()->addPermanentWidget(filenameLabel);
+    
+    // Initial update
+    updateStatusBar();
+}
+
+void MainWindow::updateStatusBar()
+{
+    EditorWidget *editor = currentEditor();
+    if (!editor) {
+        lineColumnLabel->setText("Line: 1, Column: 1");
+        modifiedLabel->setText("");
+        filenameLabel->setText("");
+        return;
+    }
+    
+    // Update modified status
+    if (editor->isModified()) {
+        modifiedLabel->setText("[Modified]");
+    } else {
+        modifiedLabel->setText("");
+    }
+    
+    // Update filename or path
+    QString filename = editor->currentFile();
+    if (filename.isEmpty()) {
+        filenameLabel->setText(QString("Untitled %1").arg(untitledCount));
+    } else {
+        filenameLabel->setText(filename);
+    }
+    
+    // Update cursor position (from CodeEditor)
+    CodeEditor* codeEditor = editor->editor();
+    if (codeEditor) {
+        QTextCursor cursor = codeEditor->textCursor();
+        int line = cursor.blockNumber() + 1; // Blocks are 0-based
+        int column = cursor.columnNumber() + 1; // Columns are 0-based
+        lineColumnLabel->setText(QString("Line: %1, Column: %2").arg(line).arg(column));
+    }
+}
+
+void MainWindow::updateCursorPosition()
+{
+    EditorWidget *editor = currentEditor();
+    if (!editor) return;
+    
+    CodeEditor* codeEditor = editor->editor();
+    if (codeEditor) {
+        QTextCursor cursor = codeEditor->textCursor();
+        int line = cursor.blockNumber() + 1; // Blocks are 0-based
+        int column = cursor.columnNumber() + 1; // Columns are 0-based
+        lineColumnLabel->setText(QString("Line: %1, Column: %2").arg(line).arg(column));
+    }
+}
+
 void MainWindow::createNewTab()
 {
     // Create a new EditorWidget
@@ -248,6 +386,11 @@ void MainWindow::createNewTab()
                         QString("Untitled %1").arg(untitledCount) : 
                         QFileInfo(fileName).fileName();
         tabWidget->setTabText(tabWidget->indexOf(editor), tabText);
+        
+        // Update the status bar when filename changes
+        if (editor == currentEditor()) {
+            updateStatusBar();
+        }
     });
     
     connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
@@ -272,6 +415,9 @@ void MainWindow::createNewTab()
     
     // Update the language menu to reflect the current editor
     updateLanguageMenu();
+    
+    // Connect editor signals for cursor position tracking
+    connectEditorSignals();
 }
 
 void MainWindow::closeCurrentTab()
@@ -349,6 +495,9 @@ void MainWindow::openFile()
         } else {
             editor->setLightTheme();
         }
+        
+        // Connect editor signals for cursor position tracking
+        connectEditorSignals();
     } else {
         delete editor;
     }
@@ -446,6 +595,9 @@ void MainWindow::documentModified(bool modified)
     // Also update window title if this is the current tab
     if (index == tabWidget->currentIndex()) {
         updateTabText(index);
+        
+        // Update the status bar to show modified status
+        updateStatusBar();
     }
 }
 
@@ -605,4 +757,20 @@ void MainWindow::showGoToLineDialog()
     goToLineDialog->show();
     goToLineDialog->raise();
     goToLineDialog->activateWindow();
+}
+
+void MainWindow::connectEditorSignals()
+{
+    EditorWidget *editor = currentEditor();
+    if (!editor) return;
+    
+    // Connect the editor's cursor position changed signal
+    CodeEditor* codeEditor = editor->editor();
+    if (codeEditor) {
+        // Disconnect previous connections if any
+        disconnect(codeEditor, &CodeEditor::cursorPositionChanged, this, nullptr);
+        
+        // Connect to this editor's cursor position changed signal
+        connect(codeEditor, &CodeEditor::cursorPositionChanged, this, &MainWindow::updateCursorPosition);
+    }
 }

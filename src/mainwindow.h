@@ -8,6 +8,7 @@ class EditorWidget;
 class QActionGroup;
 class FindReplaceDialog;
 class GoToLineDialog;
+class QLabel;
 
 class MainWindow : public QMainWindow
 {
@@ -34,9 +35,13 @@ private slots:
     void applyLightTheme();
     void applyDarkTheme();
     
-    // New slots for Find/Replace and Go to Line
+    // Find and Go to Line slots
     void showFindReplaceDialog();
     void showGoToLineDialog();
+    
+    // Status bar update slots
+    void updateStatusBar();
+    void updateCursorPosition();
 
 private:
     QTabWidget *tabWidget;
@@ -46,12 +51,20 @@ private:
     QActionGroup *themeActionGroup;
     bool isDarkThemeActive;  // Track the currently active theme
     
+    // Status bar labels
+    QLabel *lineColumnLabel;  // Shows line and column position
+    QLabel *modifiedLabel;    // Shows modified status
+    QLabel *filenameLabel;    // Shows filename or path
+    
     // Dialogs
     FindReplaceDialog *findReplaceDialog;
     GoToLineDialog *goToLineDialog;
     
     void createActions();
     void createMenus();
+    void createToolBar();
+    void createStatusBar();
+    void connectEditorSignals();
     EditorWidget *currentEditor();
     bool ensureHasOpenTab();
     bool maybeSaveAll();

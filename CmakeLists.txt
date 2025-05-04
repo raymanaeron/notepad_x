@@ -81,6 +81,9 @@ set(SOURCES
     src/highlighting/languages/luahighlighter.h
 )
 
+# Remove the resources.qrc from the project since we're using system icons
+set(RESOURCE_FILES "")
+
 add_executable(NotepadX
     ${SOURCES}
 )
