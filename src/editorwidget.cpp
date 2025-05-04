@@ -277,8 +277,9 @@ void EditorWidget::setDarkTheme()
     darkEditorPalette.setColor(QPalette::Text, QColor(220, 220, 220));   // VS Code light text
     textEditor->setPalette(darkEditorPalette);
     
-    // Custom VS Code-like dark background color for editor
-    textEditor->setStyleSheet("QPlainTextEdit { background-color: #1E1E1E; color: #DCDCDC; }");
+    // Custom VS Code-like dark background color for editor with lighter line number area
+    textEditor->setStyleSheet("QPlainTextEdit { background-color: #1E1E1E; color: #DCDCDC; } "
+                             "LineNumberArea { background-color: #333333; }"); // Lighter shade for line numbers
     
     // Update highlighter with dark theme colors
     if (highlighter) {

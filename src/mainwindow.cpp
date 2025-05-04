@@ -853,6 +853,9 @@ void MainWindow::applyLightTheme()
 {
     // Set light theme for the application
     qApp->setStyle("Fusion");
+    
+    // Clear any stylesheets first to remove dark theme styling
+    setStyleSheet("");
 
     // Create and apply VS Code-like light theme palette
     QPalette lightPalette;
@@ -932,14 +935,14 @@ void MainWindow::applyDarkTheme()
 
     // Create and apply VS Code-like dark theme palette
     QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window, QColor(30, 30, 30));             // VS Code background
+    darkPalette.setColor(QPalette::Window, QColor(51, 51, 51));             // Lighter shade for menus/toolbar
     darkPalette.setColor(QPalette::WindowText, QColor(220, 220, 220));      // VS Code text
-    darkPalette.setColor(QPalette::Base, QColor(30, 30, 30));               // VS Code editor background
+    darkPalette.setColor(QPalette::Base, QColor(30, 30, 30));               // VS Code editor background (keep dark)
     darkPalette.setColor(QPalette::AlternateBase, QColor(45, 45, 45));      // Slightly lighter
-    darkPalette.setColor(QPalette::ToolTipBase, QColor(30, 30, 30));        // Tooltip background
-    darkPalette.setColor(QPalette::ToolTipText, QColor(220, 220, 220));     // Tooltip text
+    darkPalette.setColor(QPalette::ToolTipBase, QColor(51, 51, 51));        // Match Window color
+    darkPalette.setColor(QPalette::ToolTipText, QColor(220, 220, 220));     // VS Code text
     darkPalette.setColor(QPalette::Text, QColor(220, 220, 220));            // Text color
-    darkPalette.setColor(QPalette::Button, QColor(45, 45, 45));             // Button background
+    darkPalette.setColor(QPalette::Button, QColor(51, 51, 51));             // Match Window color
     darkPalette.setColor(QPalette::ButtonText, QColor(220, 220, 220));      // Button text
     darkPalette.setColor(QPalette::BrightText, QColor(255, 255, 255));      // Bright text
     darkPalette.setColor(QPalette::Link, QColor(0, 122, 204));              // VS Code blue
@@ -995,6 +998,21 @@ void MainWindow::applyDarkTheme()
         
         action->setIcon(newIcon);
     }
+
+    // Apply VSCode-like styling for menu bar and toolbar with stylesheet
+    QString styleSheet = QString(
+        "QMenuBar { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); } "
+        "QMenuBar::item:selected { background-color: rgb(60, 60, 60); } "
+        "QMenu { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); border: 1px solid rgb(64, 64, 64); } "
+        "QMenu::item:selected { background-color: rgb(60, 60, 60); } "
+        "QToolBar { background-color: rgb(51, 51, 51); border: none; } "
+        "QToolBar::separator { background-color: rgb(80, 80, 80); width: 1px; margin: 4px 4px; } "
+        "QStatusBar { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); }"
+        "QTabBar::tab { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); border: 1px solid rgb(64, 64, 64); padding: 5px; }"
+        "QTabBar::tab:selected { background-color: rgb(30, 30, 30); }"
+    );
+    
+    setStyleSheet(styleSheet);
 
     // Save the theme preference immediately
     QSettings settings("NotepadX", "Editor");
