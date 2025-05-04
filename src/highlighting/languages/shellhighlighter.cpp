@@ -95,8 +95,8 @@ BashLanguage::BashLanguage()
     m_highlightingRules.append(rule);
     
     // No multi-line comments in Bash
-    m_commentStartExpression = QRegularExpression("[^]"); // Never match
-    m_commentEndExpression = QRegularExpression("[^]");   // Never match
+    m_commentStartExpression = QRegularExpression("(?!)"); // Valid pattern that never matches
+    m_commentEndExpression = QRegularExpression("(?!)");   // Valid pattern that never matches
 }
 
 PowerShellLanguage::PowerShellLanguage()
@@ -312,6 +312,6 @@ BatchLanguage::BatchLanguage()
     m_highlightingRules.append(rule);
     
     // No multi-line comments in batch files
-    m_commentStartExpression = QRegularExpression("[^]"); // Never match
-    m_commentEndExpression = QRegularExpression("[^]");   // Never match
+    m_commentStartExpression = QRegularExpression("(?!)"); // Valid pattern that never matches
+    m_commentEndExpression = QRegularExpression("(?!)");   // Valid pattern that never matches
 }

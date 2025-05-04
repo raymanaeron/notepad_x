@@ -99,6 +99,28 @@ void MainWindow::createMenus()
         }
     });
     
+    // Create View menu with Theme submenu (moved before Language menu)
+    QMenu *viewMenu = menuBar()->addMenu("&View");
+    QMenu *themeMenu = viewMenu->addMenu("&Theme");
+    
+    // Create theme action group
+    themeActionGroup = new QActionGroup(this);
+    
+    // Light theme action
+    QAction *lightThemeAction = new QAction("&Light Theme", this);
+    lightThemeAction->setCheckable(true);
+    lightThemeAction->setChecked(true); // Default is light theme
+    themeActionGroup->addAction(lightThemeAction);
+    themeMenu->addAction(lightThemeAction);
+    connect(lightThemeAction, &QAction::triggered, this, &MainWindow::applyLightTheme);
+    
+    // Dark theme action
+    QAction *darkThemeAction = new QAction("&Dark Theme", this);
+    darkThemeAction->setCheckable(true);
+    themeActionGroup->addAction(darkThemeAction);
+    themeMenu->addAction(darkThemeAction);
+    connect(darkThemeAction, &QAction::triggered, this, &MainWindow::applyDarkTheme);
+    
     // Create Language menu
     languageMenu = menuBar()->addMenu("&Language");
     languageActionGroup = new QActionGroup(this);
@@ -121,28 +143,6 @@ void MainWindow::createMenus()
     
     // Connect tab change signal to update language menu
     connect(tabWidget, &QTabWidget::currentChanged, this, &MainWindow::updateLanguageMenu);
-    
-    // Create View menu with Theme submenu
-    QMenu *viewMenu = menuBar()->addMenu("&View");
-    QMenu *themeMenu = viewMenu->addMenu("&Theme");
-    
-    // Create theme action group
-    themeActionGroup = new QActionGroup(this);
-    
-    // Light theme action
-    QAction *lightThemeAction = new QAction("&Light Theme", this);
-    lightThemeAction->setCheckable(true);
-    lightThemeAction->setChecked(true); // Default is light theme
-    themeActionGroup->addAction(lightThemeAction);
-    themeMenu->addAction(lightThemeAction);
-    connect(lightThemeAction, &QAction::triggered, this, &MainWindow::applyLightTheme);
-    
-    // Dark theme action
-    QAction *darkThemeAction = new QAction("&Dark Theme", this);
-    darkThemeAction->setCheckable(true);
-    themeActionGroup->addAction(darkThemeAction);
-    themeMenu->addAction(darkThemeAction);
-    connect(darkThemeAction, &QAction::triggered, this, &MainWindow::applyDarkTheme);
 }
 
 void MainWindow::createNewTab()

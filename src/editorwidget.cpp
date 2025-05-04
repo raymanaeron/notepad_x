@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
+#include <QFontDatabase>
 
 EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile(""), isDarkTheme(false)
 {
@@ -34,10 +35,45 @@ EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), curFile(""), isDa
 
 void EditorWidget::setupEditor()
 {
+    // Use platform-specific fonts that match VS Code defaults
     QFont font;
-    font.setFamily("Courier");
+    
+    // Platform-specific font selection
+    #if defined(Q_OS_WIN)
+        // Windows - VS Code default is Consolas
+        font.setFamily("Consolas");
+    #elif defined(Q_OS_MACOS)
+        // macOS - VS Code default is Menlo
+        font.setFamily("Menlo");
+    #elif defined(Q_OS_LINUX)
+        // Linux - VS Code defaults to Ubuntu Mono or DejaVu Sans Mono
+        QStringList linuxFonts = {"Ubuntu Mono", "DejaVu Sans Mono"};
+        bool fontFound = false;
+        
+        // Try to find a known font that exists on the system
+        QFontDatabase fontDatabase;
+        for (const QString &fontFamily : linuxFonts) {
+            if (fontDatabase.families().contains(fontFamily, Qt::CaseInsensitive)) {
+                font.setFamily(fontFamily);
+                fontFound = true;
+                break;
+            }
+        }
+        
+        // If none found, fall back to any monospace
+        if (!fontFound) {
+            font.setFamily("monospace");
+        }
+    #else
+        // Generic fallback for other platforms
+        font.setFamily("monospace");
+    #endif
+    
+    // Set fallback options for all platforms
+    font.setStyleHint(QFont::Monospace); 
     font.setFixedPitch(true);
-    font.setPointSize(10);
+    font.setPointSize(11); // Slightly larger for better readability
+    
     textEditor->setFont(font);
     
     // Set tab width to 4 characters

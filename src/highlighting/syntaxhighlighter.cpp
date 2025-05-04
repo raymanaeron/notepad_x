@@ -108,7 +108,7 @@ void SyntaxHighlighter::highlightBlock(const QString &text)
     }
     
     // Handle multi-line comments if the language supports them
-    if (!commentStartExpression.pattern().isEmpty()) {
+    if (!commentStartExpression.pattern().isEmpty() && commentStartExpression.isValid() && commentEndExpression.isValid()) {
         setCurrentBlockState(0);
         
         int startIndex = 0;

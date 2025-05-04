@@ -78,6 +78,6 @@ YamlLanguage::YamlLanguage()
     m_highlightingRules.append(rule);
     
     // YAML has no multiline comments
-    m_commentStartExpression = QRegularExpression("[^]"); // Never match
-    m_commentEndExpression = QRegularExpression("[^]");   // Never match
+    m_commentStartExpression = QRegularExpression("(?!)"); // Valid pattern that never matches
+    m_commentEndExpression = QRegularExpression("(?!)");   // Valid pattern that never matches
 }

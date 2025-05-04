@@ -129,7 +129,7 @@ MarkupLanguage::MarkupLanguage()
     rule.format = codeFormat; // Reusing the code format
     m_highlightingRules.append(rule);
     
-    // No multi-line comments in Markdown
-    m_commentStartExpression = QRegularExpression("[^]"); // Never match
-    m_commentEndExpression = QRegularExpression("[^]");   // Never match
+    // No multi-line comments in Markdown, use a valid pattern that will never match
+    m_commentStartExpression = QRegularExpression("(?!)"); // Valid pattern that never matches
+    m_commentEndExpression = QRegularExpression("(?!)");   // Valid pattern that never matches
 }
