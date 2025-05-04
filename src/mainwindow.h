@@ -5,6 +5,7 @@
 #include <QTabWidget>
 
 class EditorWidget;
+class QActionGroup;
 
 class MainWindow : public QMainWindow
 {
@@ -26,10 +27,14 @@ private slots:
     bool saveFileAs();
     void updateTabText(int index);
     void documentModified(bool modified);
+    void languageSelected(QAction *action);
+    void updateLanguageMenu();
 
 private:
     QTabWidget *tabWidget;
     int untitledCount;
+    QMenu *languageMenu;
+    QActionGroup *languageActionGroup;
     
     void createActions();
     void createMenus();

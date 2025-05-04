@@ -136,8 +136,8 @@ void EditorWidget::updateHighlighter()
     if (!curFile.isEmpty()) {
         highlighter = HighlighterFactory::instance().createHighlighterForFile(curFile, textEditor->document());
     } else {
-        // Default highlighter for new files - plain text
-        highlighter = HighlighterFactory::instance().createHighlighter("Plain Text", textEditor->document());
+        // Default highlighter for new files - None (plain text)
+        highlighter = HighlighterFactory::instance().createHighlighter("None", textEditor->document());
     }
     
     emit languageChanged(highlighter->languageName());

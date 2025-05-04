@@ -3,6 +3,7 @@
 
 #include "syntaxhighlighter.h"
 #include "languages/cpphighlighter.h"
+#include "languages/rusthighlighter.h"
 #include <QMap>
 #include <QFileInfo>
 

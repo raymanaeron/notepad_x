@@ -1,10 +1,12 @@
 #include "mainwindow.h"
 #include "editorwidget.h" 
+#include "highlighting/highlighterfactory.h"
 #include <QShortcut>
 #include <QTabBar>
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -52,7 +54,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::createMenus()
 {
-    // Create menu
+    // Create File menu
     QMenu *fileMenu = menuBar()->addMenu("&File");
     
     // New tab action
@@ -96,6 +98,28 @@ void MainWindow::createMenus()
             qApp->quit();
         }
     });
+    
+    // Create Language menu
+    languageMenu = menuBar()->addMenu("&Language");
+    languageActionGroup = new QActionGroup(this);
+    connect(languageActionGroup, &QActionGroup::triggered, this, &MainWindow::languageSelected);
+    
+    // Populate language menu
+    QStringList languages = HighlighterFactory::instance().supportedLanguages();
+    for (const QString &lang : languages) {
+        QAction *langAction = languageMenu->addAction(lang);
+        langAction->setCheckable(true);
+        
+        // Default to "None" selected
+        if (lang == "None") {
+            langAction->setChecked(true);
+        }
+        
+        languageActionGroup->addAction(langAction);
+    }
+    
+    // Connect tab change signal to update language menu
+    connect(tabWidget, &QTabWidget::currentChanged, this, &MainWindow::updateLanguageMenu);
 }
 
 void MainWindow::createNewTab()
@@ -116,9 +140,19 @@ void MainWindow::createNewTab()
     
     connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
     
+    connect(editor, &EditorWidget::languageChanged, this, [=](const QString &) {
+        // Update language menu when the language changes
+        if (editor == currentEditor()) {
+            updateLanguageMenu();
+        }
+    });
+    
     // Set the new tab as the current tab
     tabWidget->setCurrentIndex(index);
     editor->setFocus();
+    
+    // Update the language menu to reflect the current editor
+    updateLanguageMenu();
 }
 
 void MainWindow::closeCurrentTab()
@@ -301,4 +335,28 @@ bool MainWindow::maybeSaveAll()
         }
     }
     return true;
+}
+
+void MainWindow::languageSelected(QAction *action)
+{
+    EditorWidget *editor = currentEditor();
+    if (editor) {
+        editor->setLanguage(action->text());
+    }
+}
+
+void MainWindow::updateLanguageMenu()
+{
+    EditorWidget *editor = currentEditor();
+    if (editor) {
+        QString currentLang = editor->currentLanguage();
+        
+        // Find and check the appropriate action
+        for (QAction *action : languageActionGroup->actions()) {
+            if (action->text() == currentLang) {
+                action->setChecked(true);
+                break;
+            }
+        }
+    }
 }

@@ -33,6 +33,8 @@ set(SOURCES
     src/highlighting/highlighterfactory.h
     src/highlighting/languages/cpphighlighter.cpp
     src/highlighting/languages/cpphighlighter.h
+    src/highlighting/languages/rusthighlighter.cpp
+    src/highlighting/languages/rusthighlighter.h
 )
 
 add_executable(NotepadX

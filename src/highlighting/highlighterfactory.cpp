@@ -8,8 +8,10 @@ HighlighterFactory& HighlighterFactory::instance()
 
 HighlighterFactory::HighlighterFactory()
 {
-    // Register languages
+    // Register languages - "None" first to ensure it appears at the top
+    m_languages["None"] = new LanguageData(); // Plain text, no highlighting
     m_languages["C++"] = new CppLanguage();
+    m_languages["Rust"] = new RustLanguage();
     
     // Create extension mappings - populated from the language data
     for (auto it = m_languages.constBegin(); it != m_languages.constEnd(); ++it) {
@@ -56,5 +58,10 @@ QString HighlighterFactory::languageForExtension(const QString &extension)
 
 QStringList HighlighterFactory::supportedLanguages() const
 {
-    return m_languages.keys();
+    // Ensure "None" appears first in the list
+    QStringList languages = m_languages.keys();
+    languages.removeAll("None");
+    languages.sort();
+    languages.prepend("None");
+    return languages;
 }
