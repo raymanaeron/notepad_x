@@ -248,39 +248,44 @@ void MainWindow::createToolBar()
     toolBar->setMovable(false);
     toolBar->setIconSize(QSize(18, 18));
     
-    // New file action
+    // New file action - has standard icon
     QAction *newAction = toolBar->addAction("New");
     newAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileIcon));
     connect(newAction, &QAction::triggered, this, &MainWindow::createNewTab);
     
-    // Open file action
+    // Open file action - has standard icon
     QAction *openAction = toolBar->addAction("Open");
     openAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
     connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
     
-    // Save file action
+    // Save file action - has standard icon
     QAction *saveAction = toolBar->addAction("Save");
     saveAction->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveFile);
     
     toolBar->addSeparator();
     
-    // Cut action with text-only button
+    // For the clipboard operations, we'll use text + shortcut hints
+    // Cut action
     QAction *cutAction = toolBar->addAction("Cut");
+    // Display the shortcut as part of the tooltip
+    cutAction->setToolTip(QString("Cut (Ctrl+X)"));
     connect(cutAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
         if (editor) editor->cut();
     });
     
-    // Copy action with text-only button
+    // Copy action
     QAction *copyAction = toolBar->addAction("Copy");
+    copyAction->setToolTip(QString("Copy (Ctrl+C)"));
     connect(copyAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
         if (editor) editor->copy();
     });
     
-    // Paste action with text-only button
+    // Paste action
     QAction *pasteAction = toolBar->addAction("Paste");
+    pasteAction->setToolTip(QString("Paste (Ctrl+V)"));
     connect(pasteAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
         if (editor) editor->paste();
@@ -288,15 +293,17 @@ void MainWindow::createToolBar()
     
     toolBar->addSeparator();
     
-    // Undo action with text-only button
+    // Undo action
     QAction *undoAction = toolBar->addAction("Undo");
+    undoAction->setToolTip(QString("Undo (Ctrl+Z)"));
     connect(undoAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
         if (editor) editor->undo();
     });
     
-    // Redo action with text-only button
+    // Redo action
     QAction *redoAction = toolBar->addAction("Redo");
+    redoAction->setToolTip(QString("Redo (Ctrl+Y)"));
     connect(redoAction, &QAction::triggered, this, [this]() {
         EditorWidget *editor = currentEditor();
         if (editor) editor->redo();
