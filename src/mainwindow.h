@@ -3,12 +3,14 @@
 
 #include <QMainWindow>
 #include <QTabWidget>
+#include <QSettings>
 
 class EditorWidget;
 class QActionGroup;
 class FindReplaceDialog;
 class GoToLineDialog;
 class QLabel;
+class QMenu;
 
 class MainWindow : public QMainWindow
 {
@@ -42,14 +44,24 @@ private slots:
     // Status bar update slots
     void updateStatusBar();
     void updateCursorPosition();
+    
+    // Recent files related slots
+    void openRecentFile();
+    void clearRecentFiles();
+    void updateRecentFilesMenu();
 
 private:
     QTabWidget *tabWidget;
     int untitledCount;
     QMenu *languageMenu;
+    QMenu *recentFilesMenu;
     QActionGroup *languageActionGroup;
     QActionGroup *themeActionGroup;
     bool isDarkThemeActive;  // Track the currently active theme
+    
+    // Recent files list
+    QStringList recentFiles;
+    const int maxRecentFiles = 10;
     
     // Status bar labels
     QLabel *lineColumnLabel;  // Shows line and column position
@@ -60,7 +72,6 @@ private:
     FindReplaceDialog *findReplaceDialog;
     GoToLineDialog *goToLineDialog;
     
-    void createActions();
     void createMenus();
     void createToolBar();
     void createStatusBar();
@@ -68,6 +79,12 @@ private:
     EditorWidget *currentEditor();
     bool ensureHasOpenTab();
     bool maybeSaveAll();
+    
+    // Settings handling
+    void readSettings();
+    void writeSettings();
+    void addToRecentFiles(const QString &filePath);
+    bool openFileHelper(const QString &fileName);
 };
 
 #endif // MAINWINDOW_H

@@ -19,15 +19,16 @@
 #include <QToolBar>
 #include <QLabel>
 #include <QStyle> // Add this to include QStyle
+#include <QSettings>
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
       findReplaceDialog(nullptr), goToLineDialog(nullptr)
 {
     setWindowTitle("Notepad X");
-    resize(800, 600);
     
-    // Create tab widget
+    // Create tab widget first
     tabWidget = new QTabWidget(this);
     tabWidget->setTabsClosable(true);
     tabWidget->setMovable(true);
@@ -48,8 +49,13 @@ MainWindow::MainWindow(QWidget *parent)
     createToolBar();
     createStatusBar();
     
-    // Create initial tab
-    createNewTab();
+    // Now read settings after all UI components are created
+    readSettings();
+    
+    // Create initial tab if no files were restored
+    if (tabWidget->count() == 0) {
+        createNewTab();
+    }
 }
 
 MainWindow::~MainWindow()
@@ -67,6 +73,7 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSaveAll()) {
+        writeSettings();
         event->accept();
     } else {
         event->ignore();
@@ -89,6 +96,17 @@ void MainWindow::createMenus()
     openAction->setShortcut(QKeySequence::Open);
     fileMenu->addAction(openAction);
     connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
+    
+    // Add Recent Files menu
+    recentFilesMenu = fileMenu->addMenu("Recent &Files");
+    
+    // Clear recent files action
+    QAction *clearRecentAction = new QAction("&Clear Recent Files", this);
+    connect(clearRecentAction, &QAction::triggered, this, &MainWindow::clearRecentFiles);
+    recentFilesMenu->addAction(clearRecentAction);
+    recentFilesMenu->addSeparator();
+    
+    fileMenu->addSeparator();
     
     // Save file action
     QAction *saveAction = new QAction("&Save", this);
@@ -206,7 +224,7 @@ void MainWindow::createMenus()
     // Light theme action
     QAction *lightThemeAction = new QAction("&Light Theme", this);
     lightThemeAction->setCheckable(true);
-    lightThemeAction->setChecked(true); // Default is light theme
+    lightThemeAction->setChecked(!isDarkThemeActive); // Default is light theme
     themeActionGroup->addAction(lightThemeAction);
     themeMenu->addAction(lightThemeAction);
     connect(lightThemeAction, &QAction::triggered, this, &MainWindow::applyLightTheme);
@@ -214,6 +232,7 @@ void MainWindow::createMenus()
     // Dark theme action
     QAction *darkThemeAction = new QAction("&Dark Theme", this);
     darkThemeAction->setCheckable(true);
+    darkThemeAction->setChecked(isDarkThemeActive);
     themeActionGroup->addAction(darkThemeAction);
     themeMenu->addAction(darkThemeAction);
     connect(darkThemeAction, &QAction::triggered, this, &MainWindow::applyDarkTheme);
@@ -460,23 +479,35 @@ void MainWindow::openFile()
     QString fileName = QFileDialog::getOpenFileName(this);
     if (fileName.isEmpty())
         return;
+    
+    if (openFileHelper(fileName)) {
+        // Add to recent files if successfully opened
+        addToRecentFiles(fileName);
+    }
+}
+
+bool MainWindow::openFileHelper(const QString &fileName)
+{
+    if (fileName.isEmpty())
+        return false;
         
     // Check if the file is already open
     for (int i = 0; i < tabWidget->count(); ++i) {
         EditorWidget *editor = qobject_cast<EditorWidget*>(tabWidget->widget(i));
         if (editor && QFileInfo(fileName) == QFileInfo(editor->currentFile())) {
             tabWidget->setCurrentIndex(i);
-            return;
+            return true;
         }
     }
     
     // If current tab is untitled and not modified, use it
-    EditorWidget *currentEditor = qobject_cast<EditorWidget*>(tabWidget->currentWidget());
-    if (currentEditor && currentEditor->isUntitled() && !currentEditor->isModified()) {
-        if (currentEditor->loadFile(fileName)) {
+    EditorWidget *currentEditorWidget = currentEditor();
+    if (currentEditorWidget && currentEditorWidget->isUntitled() && !currentEditorWidget->isModified()) {
+        if (currentEditorWidget->loadFile(fileName)) {
             statusBar()->showMessage(tr("File loaded"), 2000);
+            return true;
         }
-        return;
+        return false;
     }
     
     // Create a new tab
@@ -505,8 +536,11 @@ void MainWindow::openFile()
         
         // Connect editor signals for cursor position tracking
         connectEditorSignals();
+        
+        return true;
     } else {
         delete editor;
+        return false;
     }
 }
 
@@ -521,6 +555,10 @@ bool MainWindow::saveFile()
         
     if (editor->save()) {
         statusBar()->showMessage(tr("File saved"), 2000);
+        // Add to recent files when saving a new file
+        if (!editor->currentFile().isEmpty()) {
+            addToRecentFiles(editor->currentFile());
+        }
         return true;
     }
     
@@ -538,6 +576,10 @@ bool MainWindow::saveFileAs()
         
     if (editor->saveAs()) {
         statusBar()->showMessage(tr("File saved"), 2000);
+        // Add to recent files when saving with a new name
+        if (!editor->currentFile().isEmpty()) {
+            addToRecentFiles(editor->currentFile());
+        }
         return true;
     }
     
@@ -779,5 +821,232 @@ void MainWindow::connectEditorSignals()
         
         // Connect to this editor's cursor position changed signal
         connect(codeEditor, &CodeEditor::cursorPositionChanged, this, &MainWindow::updateCursorPosition);
+    }
+}
+
+void MainWindow::readSettings()
+{
+    QSettings settings("NotepadX", "Editor");
+    
+    // Restore window geometry
+    const QByteArray geometry = settings.value("geometry", QByteArray()).toByteArray();
+    if (!geometry.isEmpty()) {
+        restoreGeometry(geometry);
+    } else {
+        // Default size if no settings exist
+        resize(800, 600);
+    }
+    
+    // Restore window state (toolbars, docks, etc.)
+    const QByteArray state = settings.value("windowState", QByteArray()).toByteArray();
+    if (!state.isEmpty()) {
+        restoreState(state);
+    }
+    
+    // Restore theme setting
+    isDarkThemeActive = settings.value("darkTheme", false).toBool();
+    
+    // Restore recent files list with validation
+    recentFiles = settings.value("recentFiles").toStringList();
+    
+    // Remove any non-existent files from the recent files list
+    QStringList validRecentFiles;
+    foreach (const QString &filePath, recentFiles) {
+        if (QFile::exists(filePath)) {
+            validRecentFiles.append(filePath);
+        }
+    }
+    recentFiles = validRecentFiles;
+    
+    // Apply the appropriate theme immediately after reading preference
+    if (isDarkThemeActive) {
+        applyDarkTheme();
+    } else {
+        applyLightTheme();
+    }
+    
+    // Only restore session files if that setting is enabled
+    bool restoreSession = settings.value("restoreSession", true).toBool();
+    if (restoreSession) {
+        try {
+            // Restore last open files
+            int fileCount = settings.beginReadArray("openFiles");
+            int currentTabIndex = settings.value("currentTabIndex", 0).toInt();
+            
+            for (int i = 0; i < fileCount; ++i) {
+                settings.setArrayIndex(i);
+                QString filePath = settings.value("path").toString();
+                
+                if (!filePath.isEmpty() && QFile::exists(filePath)) {
+                    EditorWidget *editor = new EditorWidget(this);
+                    
+                    try {
+                        if (editor->loadFile(filePath)) {
+                            int index = tabWidget->addTab(editor, QFileInfo(filePath).fileName());
+                            
+                            // Connect signals
+                            connect(editor, &EditorWidget::fileNameChanged, this, [=](const QString &fileName) {
+                                QString tabText = fileName.isEmpty() ? 
+                                                QString("Untitled %1").arg(untitledCount) : 
+                                                QFileInfo(fileName).fileName();
+                                tabWidget->setTabText(tabWidget->indexOf(editor), tabText);
+                                
+                                // Update status bar if this is the current editor
+                                if (editor == currentEditor()) {
+                                    updateStatusBar();
+                                }
+                            });
+                            
+                            connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
+                            connect(editor, &EditorWidget::languageChanged, this, [=](const QString &) {
+                                // Update language menu when the language changes
+                                if (editor == currentEditor()) {
+                                    updateLanguageMenu();
+                                }
+                            });
+                        } else {
+                            delete editor;
+                        }
+                    } catch (...) {
+                        // Safety fallback if loading fails
+                        delete editor;
+                    }
+                }
+            }
+            settings.endArray();
+            
+            // Set the current tab safely
+            if (currentTabIndex >= 0 && currentTabIndex < tabWidget->count()) {
+                tabWidget->setCurrentIndex(currentTabIndex);
+            }
+        } catch (...) {
+            // If anything goes wrong during session restore, just continue
+            qDebug("Error restoring session");
+        }
+    }
+    
+    // Update the recent files menu
+    updateRecentFilesMenu();
+}
+
+void MainWindow::writeSettings()
+{
+    QSettings settings("NotepadX", "Editor");
+    
+    // Save window geometry
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
+    
+    // Save theme setting
+    settings.setValue("darkTheme", isDarkThemeActive);
+    
+    // Save recent files
+    settings.setValue("recentFiles", recentFiles);
+    
+    // Save open files
+    int validFileCount = 0;
+    settings.beginWriteArray("openFiles");
+    
+    for (int i = 0; i < tabWidget->count(); ++i) {
+        EditorWidget *editor = qobject_cast<EditorWidget*>(tabWidget->widget(i));
+        if (editor && !editor->isUntitled()) {
+            QString filePath = editor->currentFile();
+            if (!filePath.isEmpty() && QFile::exists(filePath)) {
+                settings.setArrayIndex(validFileCount++);
+                settings.setValue("path", filePath);
+            }
+        }
+    }
+    settings.endArray();
+    
+    // Save current tab index
+    settings.setValue("currentTabIndex", tabWidget->currentIndex());
+}
+
+void MainWindow::addToRecentFiles(const QString &filePath)
+{
+    // Remove the file path if it already exists in the list
+    recentFiles.removeAll(filePath);
+    
+    // Add the file path to the beginning of the list
+    recentFiles.prepend(filePath);
+    
+    // Keep the list size limited to maxRecentFiles
+    while (recentFiles.size() > maxRecentFiles) {
+        recentFiles.removeLast();
+    }
+    
+    // Update the menu
+    updateRecentFilesMenu();
+}
+
+void MainWindow::openRecentFile()
+{
+    QAction *action = qobject_cast<QAction*>(sender());
+    if (action) {
+        QString fileName = action->data().toString();
+        
+        if (QFile::exists(fileName)) {
+            if (openFileHelper(fileName)) {
+                // Move to top of recent files list
+                addToRecentFiles(fileName);
+            }
+        } else {
+            // File not found, show error message
+            QMessageBox::warning(this, "File Not Found",
+                                QString("The file '%1' could not be found.").arg(fileName));
+            
+            // Remove from recent files list
+            recentFiles.removeAll(fileName);
+            updateRecentFilesMenu();
+        }
+    }
+}
+
+void MainWindow::clearRecentFiles()
+{
+    recentFiles.clear();
+    updateRecentFilesMenu();
+}
+
+void MainWindow::updateRecentFilesMenu()
+{
+    if (!recentFilesMenu) {
+        return; // Safety check in case the menu hasn't been created yet
+    }
+    
+    // Clear existing recent file actions, preserving the clear action and separator
+    QList<QAction*> actions = recentFilesMenu->actions();
+    if (actions.size() >= 2) {
+        // Keep the first two actions (Clear Recent Files action and separator)
+        QAction* clearAction = actions.at(0);
+        QAction* separator = actions.at(1);
+        
+        // Remove all other actions
+        for (int i = 2; i < actions.size(); ++i) {
+            recentFilesMenu->removeAction(actions[i]);
+        }
+        
+        // Update the clear action enabled state
+        clearAction->setEnabled(!recentFiles.isEmpty());
+    } else {
+        // If the menu wasn't set up properly, recreate it
+        recentFilesMenu->clear();
+        
+        QAction* clearRecentAction = new QAction("&Clear Recent Files", this);
+        connect(clearRecentAction, &QAction::triggered, this, &MainWindow::clearRecentFiles);
+        recentFilesMenu->addAction(clearRecentAction);
+        clearRecentAction->setEnabled(!recentFiles.isEmpty());
+        
+        recentFilesMenu->addSeparator();
+    }
+    
+    // Add actions for recent files
+    for (const QString &file : recentFiles) {
+        QAction *action = new QAction(QFileInfo(file).fileName(), this);
+        action->setData(file);
+        action->setStatusTip(file);
+        connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
+        recentFilesMenu->addAction(action);
     }
 }
