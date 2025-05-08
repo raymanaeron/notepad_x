@@ -68,6 +68,7 @@ private:
     QActionGroup *languageActionGroup;
     QActionGroup *themeActionGroup;
     bool isDarkThemeActive;  // Track the currently active theme
+    bool isWordWrapEnabled;  // Track word wrap state
     
     // Recent files list
     QStringList recentFiles;

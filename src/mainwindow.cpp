@@ -26,7 +26,8 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
-      findReplaceDialog(nullptr), goToLineDialog(nullptr), currentZoomLevel(0)
+      findReplaceDialog(nullptr), goToLineDialog(nullptr), currentZoomLevel(0),
+      isWordWrapEnabled(false) // Initialize the word wrap state to disabled by default
 {
     setWindowTitle("NotepadX");
 
