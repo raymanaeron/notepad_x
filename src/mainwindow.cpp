@@ -1474,6 +1474,19 @@ void MainWindow::toggleWordWrap()
     // Toggle the word wrap state
     isWordWrapEnabled = !isWordWrapEnabled;
     
-    // We'll implement the actual functionality in the next step
-    // This is just a placeholder to ensure the code builds
+    // Apply word wrap setting to all open editors
+    for (int i = 0; i < tabWidget->count(); ++i)
+    {
+        EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
+        if (editor)
+        {
+            // Apply the word wrap setting to this editor
+            // The editor's internal QPlainTextEdit/CodeEditor should handle the actual wrapping
+            editor->setWordWrapMode(isWordWrapEnabled ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
+        }
+    }
+    
+    // Store the setting in QSettings
+    QSettings settings("NotepadX", "Editor");
+    settings.setValue("wordWrap", isWordWrapEnabled);
 }

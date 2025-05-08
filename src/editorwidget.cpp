@@ -356,3 +356,15 @@ void EditorWidget::setZoomLevel(int level)
         textEditor->setZoomLevel(level);
     }
 }
+
+void EditorWidget::setWordWrapMode(QTextOption::WrapMode mode)
+{
+    if (textEditor) {
+        textEditor->setWordWrapMode(mode);
+    }
+}
+
+QTextOption::WrapMode EditorWidget::wordWrapMode() const
+{
+    return textEditor ? textEditor->wordWrapMode() : QTextOption::NoWrap;
+}

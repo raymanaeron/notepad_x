@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QString>
 #include <QVBoxLayout>  // Add this include for QVBoxLayout
+#include <QTextOption>  // Add this include for QTextOption
 
 class CodeEditor;
 class SyntaxHighlighter;
@@ -46,6 +47,10 @@ public:
     void resetZoom();
     int getCurrentZoomLevel() const;
     void setZoomLevel(int level);
+
+    // Add methods for word wrap support
+    void setWordWrapMode(QTextOption::WrapMode mode);
+    QTextOption::WrapMode wordWrapMode() const;
 
 signals:
     void fileNameChanged(const QString &fileName);
