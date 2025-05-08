@@ -1011,6 +1011,7 @@ void MainWindow::readSettings()
 {
     QSettings settings("NotepadX", "Editor");
 
+    // Restore window geometry
     const QByteArray geometry = settings.value("geometry", QByteArray()).toByteArray();
     if (!geometry.isEmpty())
     {
@@ -1018,17 +1019,49 @@ void MainWindow::readSettings()
     }
     else
     {
+        // Default size if no settings exist
         resize(800, 600);
     }
 
+    // Restore window state (toolbars, docks, etc.)
     const QByteArray state = settings.value("windowState", QByteArray()).toByteArray();
     if (!state.isEmpty())
     {
         restoreState(state);
     }
 
+    // Restore theme setting - but don't apply yet
     isDarkThemeActive = settings.value("darkTheme", false).toBool();
+    
+    // Restore word wrap setting
+    isWordWrapEnabled = settings.value("wordWrap", false).toBool();
 
+    // Update theme menu items to match the loaded preference
+    if (themeActionGroup)
+    {
+        for (QAction *action : themeActionGroup->actions())
+        {
+            if ((action->text() == "&Light Theme" && !isDarkThemeActive) ||
+                (action->text() == "&Dark Theme" && isDarkThemeActive))
+            {
+                action->setChecked(true);
+                break;
+            }
+        }
+    }
+
+    // Update word wrap menu item to match the loaded preference
+    QList<QAction *> actions = findChildren<QAction *>();
+    for (QAction *action : actions)
+    {
+        if (action->text() == "&Word Wrap")
+        {
+            action->setChecked(isWordWrapEnabled);
+            break;
+        }
+    }
+
+    // Restore recent files list with validation
     QStringList validRecentFiles;
     QStringList recentFiles = settings.value("recentFiles").toStringList();
     for (const QString &filePath : recentFiles)
@@ -1047,9 +1080,18 @@ void MainWindow::writeSettings()
 {
     QSettings settings("NotepadX", "Editor");
 
+    // Save window geometry
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
+
+    // Save theme setting
     settings.setValue("darkTheme", isDarkThemeActive);
+    
+    // Save word wrap setting
+    settings.setValue("wordWrap", isWordWrapEnabled);
+
+    // Save recent files
+    settings.setValue("recentFiles", recentFiles);
 }
 
 void MainWindow::addToRecentFiles(const QString &filePath)
