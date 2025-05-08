@@ -18,6 +18,11 @@ security find-identity
 
 # 2. Notarize and staple the signed .app bundle
 ./mac_code_sign.sh
+
+# 2.a run one time:
+./notary_tool_one_time_setup.sh
+
+# 2.b
 ./notearize_app.sh
 
 # 3. Build and sign the app bundle for DMG distribution
