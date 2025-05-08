@@ -17,4 +17,8 @@ if(APPLE)
     set(CPACK_DMG_VOLUME_NAME "NotepadX")
     set(CPACK_DMG_FORMAT "UDZO")
     set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/icons/appicons/app_icon_mac.icns")
+    
+    # Make sure bundle identifier matches exactly what's used in code signing
+    set(CPACK_BUNDLE_IDENTIFIER "net.notepadx.editor")
+    set(CPACK_DMG_BUNDLE_NAME "NotepadX")
 endif()
