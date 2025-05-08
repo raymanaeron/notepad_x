@@ -1193,12 +1193,20 @@ void MainWindow::toggleWordWrap()
 {
     isWordWrapEnabled = !isWordWrapEnabled;
     wordWrapAction->setChecked(isWordWrapEnabled);  // Update menu item state
+    
+    QTextOption::WrapMode mode = isWordWrapEnabled ? 
+        QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap;
+    
     for (int i = 0; i < tabWidget->count(); ++i)
     {
         EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
         if (editor)
         {
-            editor->setWordWrapMode(isWordWrapEnabled ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
+            editor->setWordWrapMode(mode);
         }
     }
+    
+    // Save the setting
+    QSettings settings("NotepadX", "Editor");
+    settings.setValue("wordWrap", isWordWrapEnabled);
 }

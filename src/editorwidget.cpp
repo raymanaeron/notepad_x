@@ -360,11 +360,17 @@ void EditorWidget::setZoomLevel(int level)
 void EditorWidget::setWordWrapMode(QTextOption::WrapMode mode)
 {
     if (textEditor) {
-        textEditor->setWordWrapMode(mode);
+        QTextOption option = textEditor->document()->defaultTextOption();
+        option.setWrapMode(mode);
+        textEditor->document()->setDefaultTextOption(option);
+        
+        // Force layout update to apply word wrap immediately
+        textEditor->viewport()->setFixedWidth(textEditor->viewport()->width() - 1);
+        textEditor->viewport()->setFixedWidth(QWIDGETSIZE_MAX);
     }
 }
 
 QTextOption::WrapMode EditorWidget::wordWrapMode() const
 {
-    return textEditor ? textEditor->wordWrapMode() : QTextOption::NoWrap;
+    return textEditor ? textEditor->document()->defaultTextOption().wrapMode() : QTextOption::NoWrap;
 }
