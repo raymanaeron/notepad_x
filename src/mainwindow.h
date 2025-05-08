@@ -23,7 +23,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
-    bool eventFilter(QObject *watched, QEvent *event) override; // Add this line
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void createNewTab();
@@ -91,6 +91,7 @@ private:
     
     void createMenus();
     void createToolBar();
+    void createTabWidget(); // Add new method to set up tab widget
     void createStatusBar();
     void connectEditorSignals();
     EditorWidget *currentEditor();
