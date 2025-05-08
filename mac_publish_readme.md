@@ -23,7 +23,7 @@ security find-identity
 ./notary_tool_one_time_setup.sh
 
 # 2.b
-./notearize_app.sh
+./notarize_app.sh
 
 # 3. Build and sign the app bundle for DMG distribution
 ./installer_mac.sh
