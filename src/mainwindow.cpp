@@ -273,6 +273,15 @@ void MainWindow::createMenus()
     viewMenu->addAction(resetZoomAction);
     connect(resetZoomAction, &QAction::triggered, this, &MainWindow::resetZoom);
 
+    // Add Word Wrap action with separator
+    viewMenu->addSeparator();
+
+    QAction *wordWrapAction = new QAction("&Word Wrap", this);
+    wordWrapAction->setCheckable(true);
+    wordWrapAction->setChecked(isWordWrapEnabled);
+    viewMenu->addAction(wordWrapAction);
+    connect(wordWrapAction, &QAction::triggered, this, &MainWindow::toggleWordWrap);
+
     // Create Language menu
     languageMenu = menuBar()->addMenu("&Language");
     languageActionGroup = new QActionGroup(this);
@@ -1458,4 +1467,13 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     
     // Pass all other events to the base class
     return QMainWindow::eventFilter(watched, event);
+}
+
+void MainWindow::toggleWordWrap()
+{
+    // Toggle the word wrap state
+    isWordWrapEnabled = !isWordWrapEnabled;
+    
+    // We'll implement the actual functionality in the next step
+    // This is just a placeholder to ensure the code builds
 }

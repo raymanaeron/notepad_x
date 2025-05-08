@@ -59,6 +59,9 @@ private slots:
     
     // About dialog slot
     void showAboutDialog();
+    
+    // Add word wrap slot
+    void toggleWordWrap();
 
 private:
     QTabWidget *tabWidget;
