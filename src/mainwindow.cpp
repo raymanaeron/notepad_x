@@ -249,7 +249,7 @@ void MainWindow::createMenus()
 
     viewMenu->addSeparator();
 
-    QAction *wordWrapAction = new QAction("&Word Wrap", this);
+    wordWrapAction = new QAction("&Word Wrap", this);
     wordWrapAction->setCheckable(true);
     wordWrapAction->setChecked(isWordWrapEnabled);
     viewMenu->addAction(wordWrapAction);
@@ -471,7 +471,7 @@ void MainWindow::updateCursorPosition()
 
 void MainWindow::createNewTab()
 {
-    EditorWidget *editor = new EditorWidget(this);
+    EditorWidget *editor = createEditor();
 
     QString tabName = QString("Untitled %1").arg(++untitledCount);
     int index = tabWidget->addTab(editor, tabName);
@@ -512,10 +512,18 @@ void MainWindow::createNewTab()
         editor->setLightTheme();
     }
 
-    editor->setWordWrapMode(isWordWrapEnabled ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
-
     updateLanguageMenu();
     connectEditorSignals();
+}
+
+EditorWidget* MainWindow::createEditor()
+{
+    EditorWidget *editor = new EditorWidget(this);
+
+    // Apply current word wrap setting
+    editor->setWordWrapMode(isWordWrapEnabled ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
+
+    return editor;
 }
 
 void MainWindow::closeCurrentTab()
@@ -586,7 +594,7 @@ bool MainWindow::openFileHelper(const QString &fileName)
         return false;
     }
 
-    EditorWidget *editor = new EditorWidget(this);
+    EditorWidget *editor = createEditor();
     if (editor->loadFile(fileName))
     {
         int index = tabWidget->addTab(editor, QFileInfo(fileName).fileName());
@@ -620,8 +628,6 @@ bool MainWindow::openFileHelper(const QString &fileName)
         {
             editor->setLightTheme();
         }
-
-        editor->setWordWrapMode(isWordWrapEnabled ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
 
         connectEditorSignals();
 
@@ -1186,6 +1192,7 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 void MainWindow::toggleWordWrap()
 {
     isWordWrapEnabled = !isWordWrapEnabled;
+    wordWrapAction->setChecked(isWordWrapEnabled);  // Update menu item state
     for (int i = 0; i < tabWidget->count(); ++i)
     {
         EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));

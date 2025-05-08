@@ -89,6 +89,8 @@ private:
     
     int currentZoomLevel;
     
+    QAction *wordWrapAction;
+
     void createMenus();
     void createToolBar();
     void createTabWidget(); // Add new method to set up tab widget
@@ -103,6 +105,7 @@ private:
     void writeSettings();
     void addToRecentFiles(const QString &filePath);
     bool openFileHelper(const QString &fileName);
+    EditorWidget* createEditor();
 };
 
 #endif // MAINWINDOW_H
