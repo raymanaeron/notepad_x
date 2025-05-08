@@ -32,7 +32,7 @@ export PATH="${QT_PATH}/bin:$PATH"
 echo "Deploying Qt runtime dependencies..."
 macdeployqt NotepadX.app -verbose=1
 
-# Update Info.plist with proper metadata - simplified approach
+# Update Info.plist with proper metadata - enhanced approach
 echo "Updating application metadata..."
 PLIST="NotepadX.app/Contents/Info.plist"
 
@@ -42,12 +42,17 @@ if [ ! -f "$PLIST" ]; then
     exit 1
 fi
 
-# Try to modify some basic properties
+# Try to modify some basic properties - CRITICAL for notarization
 echo "Setting CFBundleIdentifier..."
-defaults write "$PLIST" CFBundleIdentifier "com.elysianedge.notepadx"
+defaults write "$PLIST" CFBundleIdentifier "net.notepadx.editor"
 
 echo "Setting CFBundleName..."
 defaults write "$PLIST" CFBundleName "NotepadX"
+
+# Add additional required properties for proper notarization
+echo "Setting additional properties for notarization..."
+defaults write "$PLIST" CFBundleShortVersionString "1.0.0"
+defaults write "$PLIST" CFBundleVersion "1"
 
 # Fix permissions for executable
 echo "Setting executable permissions..."

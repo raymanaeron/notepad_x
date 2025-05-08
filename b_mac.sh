@@ -20,7 +20,8 @@ mkdir -p "${BUILD_DIR}"
 cd "${BUILD_DIR}"
 
 echo "Configuring project with CMake in ${BUILD_TYPE} mode..."
-cmake ../.. -DCMAKE_PREFIX_PATH="${QT_PATH}/lib/cmake" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+# Add -DBUNDLE_ID=com.elysianedge.notepadx to ensure consistent bundle ID
+cmake ../.. -DCMAKE_PREFIX_PATH="${QT_PATH}/lib/cmake" -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUNDLE_ID=com.elysianedge.notepadx
 
 if [ $? -ne 0 ]; then
     echo "[ERROR] CMake configuration failed."
@@ -56,6 +57,15 @@ if [ ! -d "NotepadX.app" ]; then
     echo "[ERROR] NotepadX.app bundle not found!"
     cd ../..
     exit 1
+fi
+
+# After build is complete, ensure bundle identifier is set
+if [ -d "NotepadX.app" ]; then
+    echo "Updating bundle identifier..."
+    PLIST="NotepadX.app/Contents/Info.plist"
+    if [ -f "$PLIST" ]; then
+        defaults write "$PLIST" CFBundleIdentifier "net.notepadx.editor"
+    fi
 fi
 
 # Run macdeployqt for comprehensive deployment
