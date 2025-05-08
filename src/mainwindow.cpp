@@ -35,8 +35,9 @@ MainWindow::MainWindow(QWidget *parent)
     createMenus();
     createToolBar();
     createStatusBar();
-    readSettings();
-
+    readSettings();  // This loads recent files and other settings
+    
+    // Only create a new tab if no tabs were restored from session
     if (tabWidget->count() == 0)
     {
         createNewTab();
@@ -65,6 +66,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSaveAll())
     {
+        saveSession();  // Save session before closing
         writeSettings();
         event->accept();
     }
@@ -1060,7 +1062,7 @@ void MainWindow::readSettings()
 
     // Restore recent files list with validation
     QStringList validRecentFiles;
-    QStringList recentFiles = settings.value("recentFiles").toStringList();
+    recentFiles = settings.value("recentFiles").toStringList();
     for (const QString &filePath : recentFiles)
     {
         if (QFile::exists(filePath))
@@ -1071,6 +1073,9 @@ void MainWindow::readSettings()
     recentFiles = validRecentFiles;
     
     updateRecentFilesMenu();
+    
+    // After loading settings, restore previous session
+    restoreSession();
 }
 
 void MainWindow::writeSettings()
@@ -1095,6 +1100,12 @@ void MainWindow::addToRecentFiles(const QString &filePath)
 {
     recentFiles.removeAll(filePath);
     recentFiles.prepend(filePath);
+    
+    // Limit to MAX_RECENT_FILES
+    while (recentFiles.size() > MAX_RECENT_FILES) {
+        recentFiles.removeLast();
+    }
+    
     updateRecentFilesMenu();
 }
 
@@ -1123,12 +1134,23 @@ void MainWindow::updateRecentFilesMenu()
         return;
 
     recentFilesMenu->clear();
-    for (const QString &file : recentFiles)
-    {
-        QAction *action = new QAction(QFileInfo(file).fileName(), this);
-        action->setData(file);
-        connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
-        recentFilesMenu->addAction(action);
+    
+    // First add the "Clear Recent Files" action
+    QAction *clearRecentAction = new QAction("&Clear Recent Files", this);
+    connect(clearRecentAction, &QAction::triggered, this, &MainWindow::clearRecentFiles);
+    recentFilesMenu->addAction(clearRecentAction);
+    
+    if (!recentFiles.isEmpty()) {
+        recentFilesMenu->addSeparator();
+        
+        for (const QString &file : recentFiles)
+        {
+            QAction *action = new QAction(QFileInfo(file).fileName(), this);
+            action->setData(file);
+            action->setToolTip(file); // Show full path on hover
+            connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
+            recentFilesMenu->addAction(action);
+        }
     }
 }
 
@@ -1209,4 +1231,122 @@ void MainWindow::toggleWordWrap()
     // Save the setting
     QSettings settings("NotepadX", "Editor");
     settings.setValue("wordWrap", isWordWrapEnabled);
+}
+
+void MainWindow::saveSession()
+{
+    QSettings settings("NotepadX", "Editor");
+    QStringList openFiles;
+    int currentIndex = tabWidget->currentIndex();
+    
+    settings.beginWriteArray("openFiles");
+    for (int i = 0; i < tabWidget->count(); ++i) {
+        EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
+        if (editor) {
+            settings.setArrayIndex(i);
+            QString filePath = editor->currentFile();
+            settings.setValue("filePath", filePath);
+            settings.setValue("isUntitled", filePath.isEmpty());
+            if (filePath.isEmpty()) {
+                // For untitled files, save content to restore
+                settings.setValue("content", editor->editor()->toPlainText());
+            }
+            settings.setValue("language", editor->currentLanguage());
+            settings.setValue("zoomLevel", editor->getCurrentZoomLevel());
+        }
+    }
+    settings.endArray();
+    
+    settings.setValue("activeTab", currentIndex);
+}
+
+void MainWindow::restoreSession()
+{
+    QSettings settings("NotepadX", "Editor");
+    int size = settings.beginReadArray("openFiles");
+    
+    // Don't create default tab if we're going to restore files
+    if (size > 0) {
+        // Remove the default tab if it exists and is empty/untitled
+        if (tabWidget->count() == 1) {
+            EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(0));
+            if (editor && editor->isUntitled() && !editor->isModified()) {
+                tabWidget->removeTab(0);
+                delete editor;
+            }
+        }
+        
+        for (int i = 0; i < size; ++i) {
+            settings.setArrayIndex(i);
+            QString filePath = settings.value("filePath").toString();
+            bool isUntitled = settings.value("isUntitled").toBool();
+            QString language = settings.value("language").toString();
+            int zoomLevel = settings.value("zoomLevel", 0).toInt();
+            
+            EditorWidget *editor = createEditor();
+            
+            if (!isUntitled && !filePath.isEmpty() && QFile::exists(filePath)) {
+                // Load existing file
+                editor->loadFile(filePath);
+            } else if (isUntitled) {
+                // Restore content for untitled files
+                QString content = settings.value("content").toString();
+                editor->editor()->setPlainText(content);
+            }
+            
+            // Set language and zoom level
+            if (!language.isEmpty()) {
+                editor->setLanguage(language);
+            }
+            editor->setZoomLevel(zoomLevel);
+            
+            // Add tab with proper title
+            QString tabTitle;
+            if (isUntitled || filePath.isEmpty()) {
+                tabTitle = QString("Untitled %1").arg(++untitledCount);
+            } else {
+                tabTitle = QFileInfo(filePath).fileName();
+            }
+            
+            int index = tabWidget->addTab(editor, tabTitle);
+            
+            // Set up the necessary connections
+            connect(editor, &EditorWidget::fileNameChanged, this, [=](const QString &fileName) {
+                QString tabText = fileName.isEmpty() ? 
+                                QString("Untitled %1").arg(untitledCount) : 
+                                QFileInfo(fileName).fileName();
+                tabWidget->setTabText(tabWidget->indexOf(editor), tabText);
+                if (editor == currentEditor()) {
+                    updateStatusBar();
+                }
+            });
+            
+            connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
+            connect(editor, &EditorWidget::languageChanged, this, [=](const QString &) {
+                if (editor == currentEditor()) {
+                    updateLanguageMenu();
+                }
+            });
+            connect(editor, &EditorWidget::zoomLevelChanged, this, [=](int) {
+                if (editor == currentEditor()) {
+                    updateStatusBar();
+                }
+            });
+            
+            if (isDarkThemeActive) {
+                editor->setDarkTheme();
+            }
+        }
+        
+        // Select previously active tab
+        int activeTab = settings.value("activeTab", 0).toInt();
+        if (activeTab >= 0 && activeTab < tabWidget->count()) {
+            tabWidget->setCurrentIndex(activeTab);
+        }
+    }
+    settings.endArray();
+    
+    connectEditorSignals();
+    updateLanguageMenu();
+    updateStatusBar();
 }

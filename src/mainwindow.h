@@ -75,7 +75,7 @@ private:
     
     // Recent files list
     QStringList recentFiles;
-    const int maxRecentFiles = 10;
+    static const int MAX_RECENT_FILES = 10;  // Define max number of recent files
     
     // Status bar labels
     QLabel *lineColumnLabel;  // Shows line and column position
@@ -106,6 +106,9 @@ private:
     void addToRecentFiles(const QString &filePath);
     bool openFileHelper(const QString &fileName);
     EditorWidget* createEditor();
+    
+    void saveSession();
+    void restoreSession();
 };
 
 #endif // MAINWINDOW_H
