@@ -13,12 +13,25 @@ allow everything
 # find the signinig ccertificate
 security find-identity 
 
-# to create pkg file
-## run once the signing certs are available
-./mac-code-sign.sh
-./mac-prod-build.sh
+# 1. Build the release app
+./b_mac.sh --release
 
-## to create dmg file
+# 2. Notarize and staple the signed .app bundle
+./mac_code_sign.sh
+./notearize_app.sh
+
+# 3. Build and sign the app bundle for DMG distribution
 ./installer_mac.sh
-./create-dmg.sh
+
+# 4. Sign the installer build of the app
+./sign_installer_app.sh
+
+# 5. Create the signed DMG
+./create_dmg.sh
+
+# 6. Create the signed PKG
+./mac_prod_build_.sh
+
+
+
 

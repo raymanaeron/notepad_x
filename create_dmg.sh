@@ -4,6 +4,10 @@
 # Ensure the script exits immediately if any command fails
 set -e
 
+# Sign the installer app before creating the DMG
+echo "Signing app before DMG creation..."
+./sign_installer_app.sh
+
 # Check if the app exists in the expected location
 APP_PATH="build/installer/NotepadX.app"
 if [ ! -d "$APP_PATH" ]; then
