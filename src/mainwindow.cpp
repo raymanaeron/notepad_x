@@ -79,8 +79,12 @@ void MainWindow::createTabWidget()
     tabWidget = new QTabWidget(this);
     tabWidget->setTabsClosable(true);
     tabWidget->setMovable(true);
+    
+    // Ensure tab bar is explicitly left aligned
     tabWidget->tabBar()->setExpanding(false);
     tabWidget->tabBar()->setDrawBase(true);
+    tabWidget->tabBar()->setElideMode(Qt::ElideRight);
+    
     setCentralWidget(tabWidget);
     tabWidget->tabBar()->installEventFilter(this);
 
@@ -816,6 +820,36 @@ void MainWindow::applyLightTheme()
             editor->setLightTheme();
         }
     }
+    
+    // Set toolbar icons to appropriate color for light theme
+    QList<QAction *> actions = findChildren<QAction *>();
+    for (QAction *action : actions)
+    {
+        if (action->icon().isNull())
+            continue;
+
+        QIcon originalIcon = action->icon();
+        QIcon::Mode mode = QIcon::Normal;
+
+        QList<QSize> sizes = originalIcon.availableSizes(mode);
+        if (sizes.isEmpty())
+            sizes.append(QSize(24, 24));
+
+        QIcon newIcon;
+        for (const QSize &size : sizes)
+        {
+            QPixmap pixmap = originalIcon.pixmap(size);
+
+            QPainter painter(&pixmap);
+            painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+            painter.fillRect(pixmap.rect(), QColor(50, 50, 50));  // Dark color for light theme
+            painter.end();
+
+            newIcon.addPixmap(pixmap, mode);
+        }
+
+        action->setIcon(newIcon);
+    }
 
     QSettings settings("NotepadX", "Editor");
     settings.setValue("darkTheme", isDarkThemeActive);
@@ -841,8 +875,8 @@ void MainWindow::applyDarkTheme()
     darkPalette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
 
     qApp->setPalette(darkPalette);
-
-    // Make toolbar icons bright white for better visibility in dark theme
+    
+    // Set toolbar icons to bright white for better visibility in dark theme
     QList<QAction *> actions = findChildren<QAction *>();
     for (QAction *action : actions)
     {
@@ -863,7 +897,7 @@ void MainWindow::applyDarkTheme()
 
             QPainter painter(&pixmap);
             painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-            painter.fillRect(pixmap.rect(), QColor(255, 255, 255));  // Pure white for better contrast
+            painter.fillRect(pixmap.rect(), QColor(255, 255, 255));  // Pure white for dark theme
             painter.end();
 
             newIcon.addPixmap(pixmap, mode);
@@ -872,6 +906,7 @@ void MainWindow::applyDarkTheme()
         action->setIcon(newIcon);
     }
 
+    // Add styling specifically for tab alignment in dark mode
     QString styleSheet = QString(
         "QMenuBar { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); } "
         "QMenuBar::item:selected { background-color: rgb(60, 60, 60); } "
