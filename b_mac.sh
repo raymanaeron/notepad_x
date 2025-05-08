@@ -51,18 +51,14 @@ echo "Deploying Qt runtime dependencies with macdeployqt..."
 # Add Qt bin directory to PATH temporarily
 export PATH="${QT_PATH}/bin:$PATH"
 
-# Deploy Qt dependencies to the app bundle
-echo "Manually copying essential Qt plugins..."
-mkdir -p "NotepadX.app/Contents/PlugIns/platforms"
-mkdir -p "NotepadX.app/Contents/PlugIns/imageformats"
-cp "${QT_PATH}/plugins/platforms/libqcocoa.dylib" "NotepadX.app/Contents/PlugIns/platforms/"
-cp "${QT_PATH}/plugins/imageformats/libqsvg.dylib" "NotepadX.app/Contents/PlugIns/imageformats/"
-cp "${QT_PATH}/lib/QtCore.framework/Versions/Current/QtCore" "NotepadX.app/Contents/Frameworks/" 2>/dev/null || :
-cp "${QT_PATH}/lib/QtGui.framework/Versions/Current/QtGui" "NotepadX.app/Contents/Frameworks/" 2>/dev/null || :
-cp "${QT_PATH}/lib/QtWidgets.framework/Versions/Current/QtWidgets" "NotepadX.app/Contents/Frameworks/" 2>/dev/null || :
-cp "${QT_PATH}/lib/QtSvg.framework/Versions/Current/QtSvg" "NotepadX.app/Contents/Frameworks/" 2>/dev/null || :
+# Make sure the app bundle exists
+if [ ! -d "NotepadX.app" ]; then
+    echo "[ERROR] NotepadX.app bundle not found!"
+    cd ../..
+    exit 1
+fi
 
-# Run macdeployqt for more comprehensive deployment
+# Run macdeployqt for comprehensive deployment
 echo "Running macdeployqt..."
 macdeployqt "NotepadX.app" -verbose=2
 
