@@ -8,10 +8,11 @@
 
 class EditorWidget;
 class QActionGroup;
-class FindReplaceDialog;
-class GoToLineDialog;
 class QLabel;
 class QMenu;
+class FileOperations;
+class EditorManager;
+class SearchManager;
 
 class MainWindow : public QMainWindow
 {
@@ -20,10 +21,25 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    
+    // Provide access to status bar labels for modules
+    QLabel* getLineColumnLabel() { return lineColumnLabel; }
+    QLabel* getZoomLabel() { return zoomLabel; }
+    QLabel* getModifiedLabel() { return modifiedLabel; }
+    QLabel* getFilenameLabel() { return filenameLabel; }
 
 protected:
     void closeEvent(QCloseEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
+
+public slots:
+    // These slots need to be public so they can be called from module classes
+    void updateTabText(int index);
+    void documentModified(bool modified);
+    void updateLanguageMenu();
+    void connectEditorSignals();
+    void updateStatusBar();
+    void updateCursorPosition();
 
 private slots:
     void createNewTab();
@@ -32,20 +48,13 @@ private slots:
     void openFile();
     bool saveFile();
     bool saveFileAs();
-    void updateTabText(int index);
-    void documentModified(bool modified);
     void languageSelected(QAction *action);
-    void updateLanguageMenu();
     void applyLightTheme();
     void applyDarkTheme();
     
     // Find and Go to Line slots
     void showFindReplaceDialog();
     void showGoToLineDialog();
-    
-    // Status bar update slots
-    void updateStatusBar();
-    void updateCursorPosition();
     
     // Recent files related slots
     void openRecentFile();
@@ -64,51 +73,32 @@ private slots:
     void toggleWordWrap();
 
 private:
+    // Core UI components
     QTabWidget *tabWidget;
-    int untitledCount;
-    QMenu *languageMenu;
-    QMenu *recentFilesMenu;
-    QActionGroup *languageActionGroup;
-    QActionGroup *themeActionGroup;
-    bool isDarkThemeActive;  // Track the currently active theme
-    bool isWordWrapEnabled;  // Track word wrap state
-    
-    // Recent files list
-    QStringList recentFiles;
-    static const int MAX_RECENT_FILES = 10;  // Define max number of recent files
     
     // Status bar labels
-    QLabel *lineColumnLabel;  // Shows line and column position
-    QLabel *modifiedLabel;    // Shows modified status
-    QLabel *filenameLabel;    // Shows filename or path
-    QLabel *zoomLabel;        // Shows current zoom level
+    QLabel *lineColumnLabel;
+    QLabel *zoomLabel;
+    QLabel *modifiedLabel;
+    QLabel *filenameLabel;
     
-    // Dialogs
-    FindReplaceDialog *findReplaceDialog;
-    GoToLineDialog *goToLineDialog;
+    // Module classes that handle specific functionality
+    FileOperations *fileOps;
+    EditorManager *editorMgr;
+    SearchManager *searchMgr;
     
-    int currentZoomLevel;
-    
-    QAction *wordWrapAction;
-
+    // UI setup methods
     void createMenus();
     void createToolBar();
-    void createTabWidget(); // Add new method to set up tab widget
+    void createTabWidget();
     void createStatusBar();
-    void connectEditorSignals();
-    EditorWidget *currentEditor();
-    bool ensureHasOpenTab();
-    bool maybeSaveAll();
     
     // Settings handling
     void readSettings();
     void writeSettings();
-    void addToRecentFiles(const QString &filePath);
-    bool openFileHelper(const QString &fileName);
-    EditorWidget* createEditor();
     
-    void saveSession();
-    void restoreSession();
+    // Event handling
+    bool maybeSaveAll();
 };
 
 #endif // MAINWINDOW_H

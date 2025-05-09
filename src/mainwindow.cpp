@@ -4,6 +4,9 @@
 #include "findreplacedialog.h"
 #include "gotolinedialog.h"
 #include "codeeditor.h"
+#include "fileoperations.h"
+#include "editormanager.h"
+#include "searchmanager.h"
 #include <QPlainTextEdit>
 #include <QShortcut>
 #include <QTabBar>
@@ -21,52 +24,111 @@
 #include <QStyle>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QDebug>
+#include <QFile>
 #include "fonticon.h"
 #include "svgiconprovider.h"
 
+// Debug helper function - make it static to avoid multiple definition error
+static void debugLogMessage(const QString& message) {
+    qDebug() << message;
+    QFile file("crash_log.txt");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Append)) {
+        QTextStream stream(&file);
+        stream << message << "\n";
+        file.close();
+    }
+}
+
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), untitledCount(0), isDarkThemeActive(false),
-      findReplaceDialog(nullptr), goToLineDialog(nullptr), currentZoomLevel(0),
-      isWordWrapEnabled(false)
+    : QMainWindow(parent)
 {
+    debugLogMessage("MainWindow constructor start");
+    
     setWindowTitle("NotepadX");
 
-    createTabWidget();
-    createMenus();
-    createToolBar();
-    createStatusBar();
-    readSettings();  // This loads recent files and other settings
-    
-    // Only create a new tab if no tabs were restored from session
-    if (tabWidget->count() == 0)
-    {
-        createNewTab();
-    }
+    try {
+        // Initialize member pointers to nullptr to prevent crashes
+        fileOps = nullptr;
+        editorMgr = nullptr;
+        searchMgr = nullptr;
 
-    if (isDarkThemeActive)
-    {
-        applyDarkTheme();
+        // Create the UI components first
+        debugLogMessage("Creating tab widget");
+        createTabWidget();
+        debugLogMessage("Tab widget created");
+        
+        // Create menus before status bar and managers
+        debugLogMessage("Creating menus");
+        createMenus();
+        debugLogMessage("Menus created");
+        
+        debugLogMessage("Creating toolbar");
+        createToolBar();
+        debugLogMessage("Toolbar created");
+        
+        debugLogMessage("Creating status bar");
+        createStatusBar();
+        debugLogMessage("Status bar created");
+
+        // Create module managers after creating UI elements
+        debugLogMessage("Creating file operations manager");
+        fileOps = new FileOperations(this);
+        debugLogMessage("File operations manager created");
+        
+        debugLogMessage("Creating editor manager");
+        editorMgr = new EditorManager(this);
+        debugLogMessage("Editor manager created");
+        
+        debugLogMessage("Creating search manager");
+        searchMgr = new SearchManager(this);
+        debugLogMessage("Search manager created");
+        
+        // Load settings
+        debugLogMessage("Reading settings");
+        readSettings();
+        debugLogMessage("Settings read");
+        
+        // Only create a new tab if no tabs were restored from session
+        if (tabWidget->count() == 0)
+        {
+            debugLogMessage("Creating new tab");
+            createNewTab();
+            debugLogMessage("New tab created");
+        }
+
+        if (editorMgr && editorMgr->isDarkTheme())
+        {
+            debugLogMessage("Applying dark theme");
+            applyDarkTheme();
+            debugLogMessage("Dark theme applied");
+        }
+        
+        debugLogMessage("MainWindow constructor completed successfully");
+    }
+    catch (const std::exception& e) {
+        debugLogMessage(QString("Exception in MainWindow constructor: %1").arg(e.what()));
+        throw; // Rethrow to be caught by main
+    }
+    catch (...) {
+        debugLogMessage("Unknown exception in MainWindow constructor");
+        throw; // Rethrow to be caught by main
     }
 }
 
 MainWindow::~MainWindow()
 {
-    if (findReplaceDialog)
-    {
-        delete findReplaceDialog;
-    }
-
-    if (goToLineDialog)
-    {
-        delete goToLineDialog;
-    }
+    // Module managers will clean up their own resources
+    delete fileOps;
+    delete editorMgr;
+    delete searchMgr;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSaveAll())
     {
-        saveSession();  // Save session before closing
+        fileOps->saveSession();
         writeSettings();
         event->accept();
     }
@@ -112,7 +174,7 @@ void MainWindow::createMenus()
     fileMenu->addAction(openAction);
     connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
 
-    recentFilesMenu = fileMenu->addMenu("Recent &Files");
+    QMenu *recentFilesMenu = fileMenu->addMenu("Recent &Files");
 
     QAction *clearRecentAction = new QAction("&Clear Recent Files", this);
     connect(clearRecentAction, &QAction::triggered, this, &MainWindow::clearRecentFiles);
@@ -154,16 +216,23 @@ void MainWindow::createMenus()
     editMenu->addAction(undoAction);
     connect(undoAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->undo(); });
+        // We'll connect this properly after editor manager is created
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->undo(); 
+        }
+    });
 
     QAction *redoAction = new QAction("&Redo", this);
     redoAction->setShortcut(QKeySequence::Redo);
     editMenu->addAction(redoAction);
     connect(redoAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->redo(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->redo(); 
+        }
+    });
 
     editMenu->addSeparator();
 
@@ -172,24 +241,33 @@ void MainWindow::createMenus()
     editMenu->addAction(cutAction);
     connect(cutAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->cut(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->cut();
+        }
+    });
 
     QAction *copyAction = new QAction("&Copy", this);
     copyAction->setShortcut(QKeySequence::Copy);
     editMenu->addAction(copyAction);
     connect(copyAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->copy(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->copy(); 
+        }
+    });
 
     QAction *pasteAction = new QAction("&Paste", this);
     pasteAction->setShortcut(QKeySequence::Paste);
     editMenu->addAction(pasteAction);
     connect(pasteAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->paste(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->paste(); 
+        }
+    });
 
     editMenu->addSeparator();
 
@@ -198,8 +276,11 @@ void MainWindow::createMenus()
     editMenu->addAction(selectAllAction);
     connect(selectAllAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->selectAll(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->selectAll(); 
+        }
+    });
 
     editMenu->addSeparator();
 
@@ -216,18 +297,21 @@ void MainWindow::createMenus()
     QMenu *viewMenu = menuBar()->addMenu("&View");
     QMenu *themeMenu = viewMenu->addMenu("&Theme");
 
-    themeActionGroup = new QActionGroup(this);
+    QActionGroup *themeActionGroup = new QActionGroup(this);
 
     QAction *lightThemeAction = new QAction("&Light Theme", this);
     lightThemeAction->setCheckable(true);
-    lightThemeAction->setChecked(!isDarkThemeActive);
+    
+    // Default to light theme - will be updated later
+    lightThemeAction->setChecked(true);
+    
     themeActionGroup->addAction(lightThemeAction);
     themeMenu->addAction(lightThemeAction);
     connect(lightThemeAction, &QAction::triggered, this, &MainWindow::applyLightTheme);
 
     QAction *darkThemeAction = new QAction("&Dark Theme", this);
     darkThemeAction->setCheckable(true);
-    darkThemeAction->setChecked(isDarkThemeActive);
+    darkThemeAction->setChecked(false); // Default to light theme
     themeActionGroup->addAction(darkThemeAction);
     themeMenu->addAction(darkThemeAction);
     connect(darkThemeAction, &QAction::triggered, this, &MainWindow::applyDarkTheme);
@@ -251,16 +335,17 @@ void MainWindow::createMenus()
 
     viewMenu->addSeparator();
 
-    wordWrapAction = new QAction("&Word Wrap", this);
+    QAction *wordWrapAction = new QAction("&Word Wrap", this);
     wordWrapAction->setCheckable(true);
-    wordWrapAction->setChecked(isWordWrapEnabled);
+    wordWrapAction->setChecked(false); // Default setting, will be updated later
     viewMenu->addAction(wordWrapAction);
     connect(wordWrapAction, &QAction::triggered, this, &MainWindow::toggleWordWrap);
 
-    languageMenu = menuBar()->addMenu("&Language");
-    languageActionGroup = new QActionGroup(this);
+    QMenu *languageMenu = menuBar()->addMenu("&Language");
+    QActionGroup *languageActionGroup = new QActionGroup(this);
     connect(languageActionGroup, &QActionGroup::triggered, this, &MainWindow::languageSelected);
 
+    // Get languages from the factory
     QStringList languages = HighlighterFactory::instance().supportedLanguages();
 
     for (const QString &lang : languages)
@@ -331,8 +416,11 @@ void MainWindow::createToolBar()
     cutAction->setToolTip(QString("Cut (Ctrl+X)"));
     connect(cutAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->cut(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->cut(); 
+        }
+    });
 
     QAction *copyAction = toolBar->addAction("Copy");
     QIcon copyIcon = SvgIconProvider::getIcon("copy");
@@ -344,8 +432,11 @@ void MainWindow::createToolBar()
     copyAction->setToolTip(QString("Copy (Ctrl+C)"));
     connect(copyAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->copy(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->copy(); 
+        }
+    });
 
     QAction *pasteAction = toolBar->addAction("Paste");
     QIcon pasteIcon = SvgIconProvider::getIcon("paste");
@@ -357,8 +448,11 @@ void MainWindow::createToolBar()
     pasteAction->setToolTip(QString("Paste (Ctrl+V)"));
     connect(pasteAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->paste(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->paste(); 
+        }
+    });
 
     toolBar->addSeparator();
 
@@ -372,8 +466,11 @@ void MainWindow::createToolBar()
     undoAction->setToolTip(QString("Undo (Ctrl+Z)"));
     connect(undoAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->undo(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->undo(); 
+        }
+    });
 
     QAction *redoAction = toolBar->addAction("Redo");
     QIcon redoIcon = SvgIconProvider::getIcon("redo");
@@ -385,728 +482,138 @@ void MainWindow::createToolBar()
     redoAction->setToolTip(QString("Redo (Ctrl+Y)"));
     connect(redoAction, &QAction::triggered, this, [this]()
             {
-        EditorWidget *editor = currentEditor();
-        if (editor) editor->redo(); });
+        if (editorMgr) {
+            EditorWidget *editor = editorMgr->currentEditor();
+            if (editor) editor->redo(); 
+        }
+    });
 }
 
 void MainWindow::createStatusBar()
 {
-    lineColumnLabel = new QLabel("Line: 1, Column: 1", this);
-    lineColumnLabel->setMinimumWidth(150);
-    statusBar()->addPermanentWidget(lineColumnLabel);
+    try {
+        debugLogMessage("Creating status bar labels");
+        
+        // Store these as class members for easier access by modules
+        lineColumnLabel = new QLabel("Line: 1, Column: 1", this);
+        lineColumnLabel->setMinimumWidth(150);
+        statusBar()->addPermanentWidget(lineColumnLabel);
+        debugLogMessage("Line column label created");
 
-    zoomLabel = new QLabel("Zoom: 100%", this);
-    zoomLabel->setMinimumWidth(100);
-    statusBar()->addPermanentWidget(zoomLabel);
+        zoomLabel = new QLabel("Zoom: 100%", this);
+        zoomLabel->setMinimumWidth(100);
+        statusBar()->addPermanentWidget(zoomLabel);
+        debugLogMessage("Zoom label created");
 
-    modifiedLabel = new QLabel("", this);
-    modifiedLabel->setMinimumWidth(80);
-    statusBar()->addPermanentWidget(modifiedLabel);
+        modifiedLabel = new QLabel("", this);
+        modifiedLabel->setMinimumWidth(80);
+        statusBar()->addPermanentWidget(modifiedLabel);
+        debugLogMessage("Modified label created");
 
-    filenameLabel = new QLabel("", this);
-    filenameLabel->setMinimumWidth(300);
-    statusBar()->addPermanentWidget(filenameLabel);
-
-    updateStatusBar();
-}
-
-void MainWindow::updateStatusBar()
-{
-    EditorWidget *editor = currentEditor();
-    if (!editor)
-    {
-        lineColumnLabel->setText("Line: 1, Column: 1");
-        zoomLabel->setText("Zoom: 100%");
-        modifiedLabel->setText("");
-        filenameLabel->setText("");
-        return;
+        filenameLabel = new QLabel("", this);
+        filenameLabel->setMinimumWidth(300);
+        statusBar()->addPermanentWidget(filenameLabel);
+        debugLogMessage("Filename label created");
+        
+        debugLogMessage("Status bar setup complete");
+    } 
+    catch (const std::exception& e) {
+        debugLogMessage(QString("Exception in createStatusBar: %1").arg(e.what()));
     }
-
-    if (editor->isModified())
-    {
-        modifiedLabel->setText("[Modified]");
-    }
-    else
-    {
-        modifiedLabel->setText("");
-    }
-
-    QString filename = editor->currentFile();
-    if (filename.isEmpty())
-    {
-        filenameLabel->setText(QString("Untitled %1").arg(untitledCount));
-    }
-    else
-    {
-        filenameLabel->setText(filename);
-    }
-
-    int zoomLevel = editor->getCurrentZoomLevel();
-    int zoomPercent = 100 + (zoomLevel * 10);
-    zoomLabel->setText(QString("Zoom: %1%").arg(zoomPercent));
-
-    CodeEditor *codeEditor = editor->editor();
-    if (codeEditor)
-    {
-        QTextCursor cursor = codeEditor->textCursor();
-        int line = cursor.blockNumber() + 1;
-        int column = cursor.columnNumber() + 1;
-        lineColumnLabel->setText(QString("Line: %1, Column: %2").arg(line).arg(column));
+    catch (...) {
+        debugLogMessage("Unknown exception in createStatusBar");
     }
 }
 
-void MainWindow::updateCursorPosition()
-{
-    EditorWidget *editor = currentEditor();
-    if (!editor)
-        return;
-
-    CodeEditor *codeEditor = editor->editor();
-    if (codeEditor)
-    {
-        QTextCursor cursor = codeEditor->textCursor();
-        int line = cursor.blockNumber() + 1;
-        int column = cursor.columnNumber() + 1;
-        lineColumnLabel->setText(QString("Line: %1, Column: %2").arg(line).arg(column));
-    }
-}
-
+// Delegate to the appropriate module managers
 void MainWindow::createNewTab()
 {
-    EditorWidget *editor = createEditor();
-
-    QString tabName = QString("Untitled %1").arg(++untitledCount);
-    int index = tabWidget->addTab(editor, tabName);
-
-    connect(editor, &EditorWidget::fileNameChanged, this, [=](const QString &fileName)
-            {
-        QString tabText = fileName.isEmpty() ? 
-                        QString("Untitled %1").arg(untitledCount) : 
-                        QFileInfo(fileName).fileName();
-        tabWidget->setTabText(tabWidget->indexOf(editor), tabText);
-        if (editor == currentEditor()) {
-            updateStatusBar();
-        } });
-
-    connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
-
-    connect(editor, &EditorWidget::languageChanged, this, [=](const QString &)
-            {
-        if (editor == currentEditor()) {
-            updateLanguageMenu();
-        } });
-
-    connect(editor, &EditorWidget::zoomLevelChanged, this, [=](int)
-            {
-        if (editor == currentEditor()) {
-            updateStatusBar();
-        } });
-
-    tabWidget->setCurrentIndex(index);
-    editor->setFocus();
-
-    if (isDarkThemeActive)
-    {
-        editor->setDarkTheme();
-    }
-    else
-    {
-        editor->setLightTheme();
-    }
-
-    updateLanguageMenu();
-    connectEditorSignals();
-}
-
-EditorWidget* MainWindow::createEditor()
-{
-    EditorWidget *editor = new EditorWidget(this);
-
-    // Apply current word wrap setting
-    editor->setWordWrapMode(isWordWrapEnabled ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
-
-    return editor;
+    fileOps->createNewTab();
 }
 
 void MainWindow::closeCurrentTab()
 {
-    int currentIndex = tabWidget->currentIndex();
-    if (currentIndex != -1)
-    {
-        onTabCloseRequested(currentIndex);
-    }
+    fileOps->closeCurrentTab();
 }
 
 void MainWindow::onTabCloseRequested(int index)
 {
-    EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(index));
-    if (!editor)
-        return;
-
-    if (editor->maybeSave())
-    {
-        tabWidget->removeTab(index);
-        delete editor;
-
-        if (tabWidget->count() == 0)
-        {
-            createNewTab();
-        }
-    }
+    fileOps->onTabCloseRequested(index);
 }
 
 void MainWindow::openFile()
 {
-    if (!ensureHasOpenTab())
-        return;
-
-    QString fileName = QFileDialog::getOpenFileName(this);
-    if (fileName.isEmpty())
-        return;
-
-    if (openFileHelper(fileName))
-    {
-        addToRecentFiles(fileName);
-    }
-}
-
-bool MainWindow::openFileHelper(const QString &fileName)
-{
-    if (fileName.isEmpty())
-        return false;
-
-    for (int i = 0; i < tabWidget->count(); ++i)
-    {
-        EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
-        if (editor && QFileInfo(fileName) == QFileInfo(editor->currentFile()))
-        {
-            tabWidget->setCurrentIndex(i);
-            return true;
-        }
-    }
-
-    EditorWidget *currentEditorWidget = currentEditor();
-    if (currentEditorWidget && currentEditorWidget->isUntitled() && !currentEditorWidget->isModified())
-    {
-        if (currentEditorWidget->loadFile(fileName))
-        {
-            statusBar()->showMessage(tr("File loaded"), 2000);
-            return true;
-        }
-        return false;
-    }
-
-    EditorWidget *editor = createEditor();
-    if (editor->loadFile(fileName))
-    {
-        int index = tabWidget->addTab(editor, QFileInfo(fileName).fileName());
-        tabWidget->setCurrentIndex(index);
-
-        connect(editor, &EditorWidget::fileNameChanged, this, [=](const QString &fileName)
-                {
-            QString tabText = fileName.isEmpty() ? 
-                            QString("Untitled %1").arg(untitledCount) : 
-                            QFileInfo(fileName).fileName();
-            tabWidget->setTabText(tabWidget->indexOf(editor), tabText);
-            if (editor == currentEditor()) {
-                updateStatusBar();
-            } });
-
-        connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
-
-        connect(editor, &EditorWidget::zoomLevelChanged, this, [=](int)
-                {
-            if (editor == currentEditor()) {
-                updateStatusBar();
-            } });
-
-        statusBar()->showMessage(tr("File loaded"), 2000);
-
-        if (isDarkThemeActive)
-        {
-            editor->setDarkTheme();
-        }
-        else
-        {
-            editor->setLightTheme();
-        }
-
-        connectEditorSignals();
-
-        return true;
-    }
-    else
-    {
-        delete editor;
-        return false;
-    }
+    fileOps->openFile();
 }
 
 bool MainWindow::saveFile()
 {
-    if (!ensureHasOpenTab())
-        return false;
-
-    EditorWidget *editor = currentEditor();
-    if (!editor)
-        return false;
-
-    if (editor->save())
-    {
-        statusBar()->showMessage(tr("File saved"), 2000);
-        if (!editor->currentFile().isEmpty())
-        {
-            addToRecentFiles(editor->currentFile());
-        }
-        return true;
-    }
-
-    return false;
+    return fileOps->saveFile();
 }
 
 bool MainWindow::saveFileAs()
 {
-    if (!ensureHasOpenTab())
-        return false;
-
-    EditorWidget *editor = currentEditor();
-    if (!editor)
-        return false;
-
-    if (editor->saveAs())
-    {
-        statusBar()->showMessage(tr("File saved"), 2000);
-        if (!editor->currentFile().isEmpty())
-        {
-            addToRecentFiles(editor->currentFile());
-        }
-        return true;
-    }
-
-    return false;
-}
-
-EditorWidget *MainWindow::currentEditor()
-{
-    return qobject_cast<EditorWidget *>(tabWidget->currentWidget());
-}
-
-bool MainWindow::ensureHasOpenTab()
-{
-    if (tabWidget->count() == 0)
-    {
-        createNewTab();
-    }
-    return tabWidget->count() > 0;
-}
-
-void MainWindow::updateTabText(int index)
-{
-    if (index < 0)
-        return;
-
-    EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(index));
-    if (!editor)
-        return;
-
-    if (index == tabWidget->currentIndex())
-    {
-        QString title = editor->currentFile();
-        if (title.isEmpty())
-            title = QString("Untitled %1").arg(untitledCount);
-        else
-            title = QFileInfo(title).fileName();
-
-        if (editor->isModified())
-            title += " *";
-
-        title += " - NotepadX";
-        setWindowTitle(title);
-    }
-}
-
-void MainWindow::documentModified(bool modified)
-{
-    EditorWidget *editor = qobject_cast<EditorWidget *>(sender());
-    if (!editor)
-        return;
-
-    int index = tabWidget->indexOf(editor);
-    if (index < 0)
-        return;
-
-    QString tabText = tabWidget->tabText(index);
-    if (modified && !tabText.endsWith(" *"))
-    {
-        tabWidget->setTabText(index, tabText + " *");
-    }
-    else if (!modified && tabText.endsWith(" *"))
-    {
-        tabWidget->setTabText(index, tabText.left(tabText.length() - 2));
-    }
-
-    if (index == tabWidget->currentIndex())
-    {
-        updateTabText(index);
-        updateStatusBar();
-    }
+    return fileOps->saveFileAs();
 }
 
 bool MainWindow::maybeSaveAll()
 {
-    for (int i = 0; i < tabWidget->count(); ++i)
-    {
-        EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
-        if (editor && editor->isModified())
-        {
-            tabWidget->setCurrentIndex(i);
-            if (!editor->maybeSave())
-            {
-                return false;
-            }
-        }
-    }
-    return true;
+    return fileOps->maybeSaveAll();
+}
+
+void MainWindow::updateTabText(int index)
+{
+    editorMgr->updateTabText(index);
+}
+
+void MainWindow::documentModified(bool modified)
+{
+    editorMgr->documentModified(modified);
 }
 
 void MainWindow::languageSelected(QAction *action)
 {
-    EditorWidget *editor = currentEditor();
-    if (editor)
-    {
-        editor->setLanguage(action->text());
-    }
+    editorMgr->languageSelected(action);
 }
 
 void MainWindow::updateLanguageMenu()
 {
-    EditorWidget *editor = currentEditor();
-    if (editor)
-    {
-        QString currentLang = editor->currentLanguage();
-
-        for (QAction *action : languageActionGroup->actions())
-        {
-            if (action->text() == currentLang)
-            {
-                action->setChecked(true);
-                break;
-            }
-        }
-    }
+    editorMgr->updateLanguageMenu();
 }
 
 void MainWindow::applyLightTheme()
 {
-    qApp->setStyle("Fusion");
-    setStyleSheet("");
-
-    QPalette lightPalette;
-    lightPalette.setColor(QPalette::Window, QColor(240, 240, 240));
-    lightPalette.setColor(QPalette::WindowText, QColor(0, 0, 0));
-    lightPalette.setColor(QPalette::Base, QColor(255, 255, 255));
-    lightPalette.setColor(QPalette::AlternateBase, QColor(245, 245, 245));
-    lightPalette.setColor(QPalette::ToolTipBase, QColor(255, 255, 255));
-    lightPalette.setColor(QPalette::ToolTipText, QColor(0, 0, 0));
-    lightPalette.setColor(QPalette::Text, QColor(0, 0, 0));
-    lightPalette.setColor(QPalette::Button, QColor(240, 240, 240));
-    lightPalette.setColor(QPalette::ButtonText, QColor(0, 0, 0));
-    lightPalette.setColor(QPalette::BrightText, QColor(0, 0, 0));
-    lightPalette.setColor(QPalette::Link, QColor(0, 122, 204));
-    lightPalette.setColor(QPalette::Highlight, QColor(185, 215, 255));
-    lightPalette.setColor(QPalette::HighlightedText, QColor(0, 0, 0));
-
-    qApp->setPalette(lightPalette);
-
-    isDarkThemeActive = false;
-
-    for (int i = 0; i < tabWidget->count(); ++i)
-    {
-        EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
-        if (editor)
-        {
-            editor->setLightTheme();
-        }
-    }
-    
-    // Set toolbar icons to appropriate color for light theme
-    QList<QAction *> actions = findChildren<QAction *>();
-    for (QAction *action : actions)
-    {
-        if (action->icon().isNull())
-            continue;
-
-        QIcon originalIcon = action->icon();
-        QIcon::Mode mode = QIcon::Normal;
-
-        QList<QSize> sizes = originalIcon.availableSizes(mode);
-        if (sizes.isEmpty())
-            sizes.append(QSize(24, 24));
-
-        QIcon newIcon;
-        for (const QSize &size : sizes)
-        {
-            QPixmap pixmap = originalIcon.pixmap(size);
-
-            QPainter painter(&pixmap);
-            painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-            painter.fillRect(pixmap.rect(), QColor(50, 50, 50));  // Dark color for light theme
-            painter.end();
-
-            newIcon.addPixmap(pixmap, mode);
-        }
-
-        action->setIcon(newIcon);
-    }
-
-    QSettings settings("NotepadX", "Editor");
-    settings.setValue("darkTheme", isDarkThemeActive);
+    editorMgr->applyLightTheme();
 }
 
 void MainWindow::applyDarkTheme()
 {
-    qApp->setStyle("Fusion");
-
-    QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window, QColor(51, 51, 51));
-    darkPalette.setColor(QPalette::WindowText, QColor(220, 220, 220));
-    darkPalette.setColor(QPalette::Base, QColor(30, 30, 30));
-    darkPalette.setColor(QPalette::AlternateBase, QColor(45, 45, 45));
-    darkPalette.setColor(QPalette::ToolTipBase, QColor(51, 51, 51));
-    darkPalette.setColor(QPalette::ToolTipText, QColor(220, 220, 220));
-    darkPalette.setColor(QPalette::Text, QColor(220, 220, 220));
-    darkPalette.setColor(QPalette::Button, QColor(51, 51, 51));
-    darkPalette.setColor(QPalette::ButtonText, QColor(220, 220, 220));
-    darkPalette.setColor(QPalette::BrightText, QColor(255, 255, 255));
-    darkPalette.setColor(QPalette::Link, QColor(0, 122, 204));
-    darkPalette.setColor(QPalette::Highlight, QColor(0, 122, 204));
-    darkPalette.setColor(QPalette::HighlightedText, QColor(255, 255, 255));
-
-    qApp->setPalette(darkPalette);
-    
-    // Set toolbar icons to bright white for better visibility in dark theme
-    QList<QAction *> actions = findChildren<QAction *>();
-    for (QAction *action : actions)
-    {
-        if (action->icon().isNull())
-            continue;
-
-        QIcon originalIcon = action->icon();
-        QIcon::Mode mode = QIcon::Normal;
-
-        QList<QSize> sizes = originalIcon.availableSizes(mode);
-        if (sizes.isEmpty())
-            sizes.append(QSize(24, 24));
-
-        QIcon newIcon;
-        for (const QSize &size : sizes)
-        {
-            QPixmap pixmap = originalIcon.pixmap(size);
-
-            QPainter painter(&pixmap);
-            painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-            painter.fillRect(pixmap.rect(), QColor(255, 255, 255));  // Pure white for dark theme
-            painter.end();
-
-            newIcon.addPixmap(pixmap, mode);
-        }
-
-        action->setIcon(newIcon);
-    }
-
-    // Add styling specifically for tab alignment in dark mode
-    QString styleSheet = QString(
-        "QMenuBar { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); } "
-        "QMenuBar::item:selected { background-color: rgb(60, 60, 60); } "
-        "QMenu { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); border: 1px solid rgb(64, 64, 64); } "
-        "QMenu::item:selected { background-color: rgb(60, 60, 60); } "
-        "QToolBar { background-color: rgb(51, 51, 51); border: none; } "
-        "QToolBar::separator { background-color: rgb(80, 80, 80); width: 1px; margin: 4px 4px; } "
-        "QStatusBar { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); }"
-        "QTabBar::tab { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); border: 1px solid rgb(64, 64, 64); padding: 5px; }"
-        "QTabBar::tab:selected { background-color: rgb(30, 30, 30); }"
-    );
-
-    setStyleSheet(styleSheet);
-
-    isDarkThemeActive = true;
-
-    for (int i = 0; i < tabWidget->count(); ++i)
-    {
-        EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
-        if (editor)
-        {
-            editor->setDarkTheme();
-        }
-    }
-
-    QSettings settings("NotepadX", "Editor");
-    settings.setValue("darkTheme", isDarkThemeActive);
+    editorMgr->applyDarkTheme();
 }
 
 void MainWindow::showFindReplaceDialog()
 {
-    if (!ensureHasOpenTab())
-        return;
-
-    EditorWidget *editor = currentEditor();
-    if (!editor)
-        return;
-
-    if (!findReplaceDialog)
-    {
-        findReplaceDialog = new FindReplaceDialog(this);
-    }
-
-    findReplaceDialog->setEditor(editor->editor());
-    findReplaceDialog->show();
-    findReplaceDialog->raise();
-    findReplaceDialog->activateWindow();
+    searchMgr->showFindReplaceDialog();
 }
 
 void MainWindow::showGoToLineDialog()
 {
-    if (!ensureHasOpenTab())
-        return;
+    searchMgr->showGoToLineDialog();
+}
 
-    EditorWidget *editor = currentEditor();
-    if (!editor)
-        return;
+void MainWindow::updateStatusBar()
+{
+    editorMgr->updateStatusBar();
+}
 
-    if (!goToLineDialog)
-    {
-        goToLineDialog = new GoToLineDialog(this);
-    }
-
-    goToLineDialog->setEditor(editor->editor());
-    goToLineDialog->show();
-    goToLineDialog->raise();
-    goToLineDialog->activateWindow();
+void MainWindow::updateCursorPosition()
+{
+    editorMgr->updateCursorPosition();
 }
 
 void MainWindow::connectEditorSignals()
 {
-    EditorWidget *editor = currentEditor();
-    if (!editor)
-        return;
-
-    CodeEditor *codeEditor = editor->editor();
-    if (codeEditor)
-    {
-        disconnect(codeEditor, &CodeEditor::cursorPositionChanged, this, nullptr);
-        connect(codeEditor, &CodeEditor::cursorPositionChanged, this, &MainWindow::updateCursorPosition);
-        
-        disconnect(codeEditor, &CodeEditor::zoomLevelChanged, this, nullptr);
-        connect(codeEditor, &CodeEditor::zoomLevelChanged, this, [this](int)
-                { updateStatusBar(); });
-    }
-
-    disconnect(editor, &EditorWidget::zoomLevelChanged, this, nullptr);
-    connect(editor, &EditorWidget::zoomLevelChanged, this, [this](int)
-            { updateStatusBar(); });
-}
-
-void MainWindow::readSettings()
-{
-    QSettings settings("NotepadX", "Editor");
-
-    // Restore window geometry
-    const QByteArray geometry = settings.value("geometry", QByteArray()).toByteArray();
-    if (!geometry.isEmpty())
-    {
-        restoreGeometry(geometry);
-    }
-    else
-    {
-        // Default size if no settings exist
-        resize(800, 600);
-    }
-
-    // Restore window state (toolbars, docks, etc.)
-    const QByteArray state = settings.value("windowState", QByteArray()).toByteArray();
-    if (!state.isEmpty())
-    {
-        restoreState(state);
-    }
-
-    // Restore theme setting - but don't apply yet
-    isDarkThemeActive = settings.value("darkTheme", false).toBool();
-    
-    // Restore word wrap setting
-    isWordWrapEnabled = settings.value("wordWrap", false).toBool();
-
-    // Update theme menu items to match the loaded preference
-    if (themeActionGroup)
-    {
-        for (QAction *action : themeActionGroup->actions())
-        {
-            if ((action->text() == "&Light Theme" && !isDarkThemeActive) ||
-                (action->text() == "&Dark Theme" && isDarkThemeActive))
-            {
-                action->setChecked(true);
-                break;
-            }
-        }
-    }
-
-    // Update word wrap menu item to match the loaded preference
-    QList<QAction *> actions = findChildren<QAction *>();
-    for (QAction *action : actions)
-    {
-        if (action->text() == "&Word Wrap")
-        {
-            action->setChecked(isWordWrapEnabled);
-            break;
-        }
-    }
-
-    // Restore recent files list with validation
-    QStringList validRecentFiles;
-    recentFiles = settings.value("recentFiles").toStringList();
-    for (const QString &filePath : recentFiles)
-    {
-        if (QFile::exists(filePath))
-        {
-            validRecentFiles.append(filePath);
-        }
-    }
-    recentFiles = validRecentFiles;
-    
-    updateRecentFilesMenu();
-    
-    // After loading settings, restore previous session
-    restoreSession();
-}
-
-void MainWindow::writeSettings()
-{
-    QSettings settings("NotepadX", "Editor");
-
-    // Save window geometry
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("windowState", saveState());
-
-    // Save theme setting
-    settings.setValue("darkTheme", isDarkThemeActive);
-
-    // Save word wrap setting
-    settings.setValue("wordWrap", isWordWrapEnabled);
-
-    // Save recent files
-    settings.setValue("recentFiles", recentFiles);
-}
-
-void MainWindow::addToRecentFiles(const QString &filePath)
-{
-    recentFiles.removeAll(filePath);
-    recentFiles.prepend(filePath);
-    
-    // Limit to MAX_RECENT_FILES
-    while (recentFiles.size() > MAX_RECENT_FILES) {
-        recentFiles.removeLast();
-    }
-    
-    updateRecentFilesMenu();
+    editorMgr->connectEditorSignals();
 }
 
 void MainWindow::openRecentFile()
@@ -1117,71 +624,39 @@ void MainWindow::openRecentFile()
         QString fileName = action->data().toString();
         if (QFile::exists(fileName))
         {
-            openFileHelper(fileName);
+            fileOps->openFileHelper(fileName);
         }
     }
 }
 
 void MainWindow::clearRecentFiles()
 {
-    recentFiles.clear();
-    updateRecentFilesMenu();
+    fileOps->clearRecentFiles();
 }
 
 void MainWindow::updateRecentFilesMenu()
 {
-    if (!recentFilesMenu)
-        return;
-
-    recentFilesMenu->clear();
-    
-    // First add the "Clear Recent Files" action
-    QAction *clearRecentAction = new QAction("&Clear Recent Files", this);
-    connect(clearRecentAction, &QAction::triggered, this, &MainWindow::clearRecentFiles);
-    recentFilesMenu->addAction(clearRecentAction);
-    
-    if (!recentFiles.isEmpty()) {
-        recentFilesMenu->addSeparator();
-        
-        for (const QString &file : recentFiles)
-        {
-            QAction *action = new QAction(QFileInfo(file).fileName(), this);
-            action->setData(file);
-            action->setToolTip(file); // Show full path on hover
-            connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
-            recentFilesMenu->addAction(action);
-        }
-    }
+    fileOps->updateRecentFilesMenu();
 }
 
 void MainWindow::zoomIn()
 {
-    EditorWidget *editor = currentEditor();
-    if (editor)
-    {
-        editor->zoomIn();
-        updateStatusBar();
-    }
+    editorMgr->zoomIn();
 }
 
 void MainWindow::zoomOut()
 {
-    EditorWidget *editor = currentEditor();
-    if (editor)
-    {
-        editor->zoomOut();
-        updateStatusBar();
-    }
+    editorMgr->zoomOut();
 }
 
 void MainWindow::resetZoom()
 {
-    EditorWidget *editor = currentEditor();
-    if (editor)
-    {
-        editor->resetZoom();
-        updateStatusBar();
-    }
+    editorMgr->resetZoom();
+}
+
+void MainWindow::toggleWordWrap()
+{
+    editorMgr->toggleWordWrap();
 }
 
 void MainWindow::showAboutDialog()
@@ -1211,142 +686,42 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     return QMainWindow::eventFilter(watched, event);
 }
 
-void MainWindow::toggleWordWrap()
+void MainWindow::readSettings()
 {
-    isWordWrapEnabled = !isWordWrapEnabled;
-    wordWrapAction->setChecked(isWordWrapEnabled);  // Update menu item state
-    
-    QTextOption::WrapMode mode = isWordWrapEnabled ? 
-        QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap;
-    
-    for (int i = 0; i < tabWidget->count(); ++i)
+    QSettings settings("NotepadX", "Editor");
+
+    // Restore window geometry
+    const QByteArray geometry = settings.value("geometry", QByteArray()).toByteArray();
+    if (!geometry.isEmpty())
     {
-        EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
-        if (editor)
-        {
-            editor->setWordWrapMode(mode);
-        }
+        restoreGeometry(geometry);
+    }
+    else
+    {
+        // Default size if no settings exist
+        resize(800, 600);
+    }
+
+    // Restore window state (toolbars, docks, etc.)
+    const QByteArray state = settings.value("windowState", QByteArray()).toByteArray();
+    if (!state.isEmpty())
+    {
+        restoreState(state);
     }
     
-    // Save the setting
-    QSettings settings("NotepadX", "Editor");
-    settings.setValue("wordWrap", isWordWrapEnabled);
+    // The modules will read their own settings
+    
+    // After loading settings, restore previous session
+    fileOps->restoreSession();
 }
 
-void MainWindow::saveSession()
+void MainWindow::writeSettings()
 {
     QSettings settings("NotepadX", "Editor");
-    QStringList openFiles;
-    int currentIndex = tabWidget->currentIndex();
-    
-    settings.beginWriteArray("openFiles");
-    for (int i = 0; i < tabWidget->count(); ++i) {
-        EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(i));
-        if (editor) {
-            settings.setArrayIndex(i);
-            QString filePath = editor->currentFile();
-            settings.setValue("filePath", filePath);
-            settings.setValue("isUntitled", filePath.isEmpty());
-            if (filePath.isEmpty()) {
-                // For untitled files, save content to restore
-                settings.setValue("content", editor->editor()->toPlainText());
-            }
-            settings.setValue("language", editor->currentLanguage());
-            settings.setValue("zoomLevel", editor->getCurrentZoomLevel());
-        }
-    }
-    settings.endArray();
-    
-    settings.setValue("activeTab", currentIndex);
-}
 
-void MainWindow::restoreSession()
-{
-    QSettings settings("NotepadX", "Editor");
-    int size = settings.beginReadArray("openFiles");
-    
-    // Don't create default tab if we're going to restore files
-    if (size > 0) {
-        // Remove the default tab if it exists and is empty/untitled
-        if (tabWidget->count() == 1) {
-            EditorWidget *editor = qobject_cast<EditorWidget *>(tabWidget->widget(0));
-            if (editor && editor->isUntitled() && !editor->isModified()) {
-                tabWidget->removeTab(0);
-                delete editor;
-            }
-        }
-        
-        for (int i = 0; i < size; ++i) {
-            settings.setArrayIndex(i);
-            QString filePath = settings.value("filePath").toString();
-            bool isUntitled = settings.value("isUntitled").toBool();
-            QString language = settings.value("language").toString();
-            int zoomLevel = settings.value("zoomLevel", 0).toInt();
-            
-            EditorWidget *editor = createEditor();
-            
-            if (!isUntitled && !filePath.isEmpty() && QFile::exists(filePath)) {
-                // Load existing file
-                editor->loadFile(filePath);
-            } else if (isUntitled) {
-                // Restore content for untitled files
-                QString content = settings.value("content").toString();
-                editor->editor()->setPlainText(content);
-            }
-            
-            // Set language and zoom level
-            if (!language.isEmpty()) {
-                editor->setLanguage(language);
-            }
-            editor->setZoomLevel(zoomLevel);
-            
-            // Add tab with proper title
-            QString tabTitle;
-            if (isUntitled || filePath.isEmpty()) {
-                tabTitle = QString("Untitled %1").arg(++untitledCount);
-            } else {
-                tabTitle = QFileInfo(filePath).fileName();
-            }
-            
-            int index = tabWidget->addTab(editor, tabTitle);
-            
-            // Set up the necessary connections
-            connect(editor, &EditorWidget::fileNameChanged, this, [=](const QString &fileName) {
-                QString tabText = fileName.isEmpty() ? 
-                                QString("Untitled %1").arg(untitledCount) : 
-                                QFileInfo(fileName).fileName();
-                tabWidget->setTabText(tabWidget->indexOf(editor), tabText);
-                if (editor == currentEditor()) {
-                    updateStatusBar();
-                }
-            });
-            
-            connect(editor, &EditorWidget::modificationChanged, this, &MainWindow::documentModified);
-            connect(editor, &EditorWidget::languageChanged, this, [=](const QString &) {
-                if (editor == currentEditor()) {
-                    updateLanguageMenu();
-                }
-            });
-            connect(editor, &EditorWidget::zoomLevelChanged, this, [=](int) {
-                if (editor == currentEditor()) {
-                    updateStatusBar();
-                }
-            });
-            
-            if (isDarkThemeActive) {
-                editor->setDarkTheme();
-            }
-        }
-        
-        // Select previously active tab
-        int activeTab = settings.value("activeTab", 0).toInt();
-        if (activeTab >= 0 && activeTab < tabWidget->count()) {
-            tabWidget->setCurrentIndex(activeTab);
-        }
-    }
-    settings.endArray();
-    
-    connectEditorSignals();
-    updateLanguageMenu();
-    updateStatusBar();
+    // Save window geometry
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
+
+    // Module-specific settings are handled by their respective classes
 }

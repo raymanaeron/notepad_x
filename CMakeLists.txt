@@ -32,6 +32,13 @@ set(SOURCES
     src/findreplacedialog.h
     src/gotolinedialog.cpp
     src/gotolinedialog.h
+    # New modular files
+    src/fileoperations.cpp
+    src/fileoperations.h
+    src/editormanager.cpp
+    src/editormanager.h
+    src/searchmanager.cpp
+    src/searchmanager.h
     src/highlighting/syntaxhighlighter.cpp
     src/highlighting/syntaxhighlighter.h
     src/highlighting/languagedata.cpp
