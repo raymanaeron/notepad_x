@@ -189,11 +189,11 @@ void EditorManager::applyDarkTheme()
 
     // Add styling specifically for tab alignment in dark mode
     QString styleSheet = QString(
-        "QMenuBar { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); } "
+        "QMenuBar { background-color: rgb(73, 73, 73); color: rgb(220, 220, 220); } "
         "QMenuBar::item:selected { background-color: rgb(60, 60, 60); } "
-        "QMenu { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); border: 1px solid rgb(64, 64, 64); } "
-        "QMenu::item:selected { background-color: rgb(60, 60, 60); } "
-        "QToolBar { background-color: rgb(51, 51, 51); border: none; } "
+        "QMenu { background-color: rgb(48, 48, 48); color: rgb(220, 220, 220); border: 1px solid rgb(64, 64, 64); } "
+        "QMenu::item:selected { background-color: rgb(89, 97, 207); } "
+        "QToolBar { background-color: rgb(65,65,65); border: none; } "
         "QToolBar::separator { background-color: rgb(80, 80, 80); width: 1px; margin: 4px 4px; } "
         "QStatusBar { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); }"
         "QTabBar::tab { background-color: rgb(51, 51, 51); color: rgb(220, 220, 220); border: 1px solid rgb(64, 64, 64); padding: 5px; }"
