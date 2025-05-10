@@ -102,6 +102,10 @@ MainWindow::MainWindow(QWidget *parent)
             debugLogMessage("Applying dark theme");
             applyDarkTheme();
             debugLogMessage("Dark theme applied");
+        } else if (editorMgr && !editorMgr->isDarkTheme()) {
+            debugLogMessage("Applying light theme");
+            applyLightTheme();
+            debugLogMessage("Light theme applied");
         }
         
         debugLogMessage("MainWindow constructor completed successfully");
