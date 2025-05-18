@@ -45,9 +45,9 @@ public slots:
     void resetZoom();
     void toggleWordWrap();
     void updateWordWrapState(); // New method to ensure word wrap state is applied
-    
-    // Setters
+      // Setters
     void setLanguageActionGroup(QActionGroup *actionGroup) { m_languageActionGroup = actionGroup; }
+    void setThemeActionGroup(QActionGroup *actionGroup) { m_themeActionGroup = actionGroup; }
     
 private:
     MainWindow *m_mainWindow;

@@ -85,9 +85,9 @@ private:
     FileOperations *fileOps;
     EditorManager *editorMgr;
     SearchManager *searchMgr;
-    
-    // UI components
+      // UI components
     QActionGroup *languageActionGroup;
+    QActionGroup *themeActionGroup;
     
     // UI setup methods
     void createMenus();

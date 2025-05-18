@@ -86,12 +86,14 @@ MainWindow::MainWindow(QWidget *parent)
         // Create module managers after creating UI elements
         debugLogMessage("Creating file operations manager");
         fileOps = new FileOperations(this);
-        debugLogMessage("File operations manager created");
-          debugLogMessage("Creating editor manager");
+        debugLogMessage("File operations manager created");        debugLogMessage("Creating editor manager");
         editorMgr = new EditorManager(this);
-        // Share the language action group with the editor manager
+        // Share action groups with the editor manager
         if (languageActionGroup) {
             editorMgr->setLanguageActionGroup(languageActionGroup);
+        }
+        if (themeActionGroup) {
+            editorMgr->setThemeActionGroup(themeActionGroup);
         }
         debugLogMessage("Editor manager created");
         
@@ -311,12 +313,10 @@ void MainWindow::createMenus()
     QAction *goToLineAction = new QAction("&Go to Line...", this);
     goToLineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_G));
     editMenu->addAction(goToLineAction);
-    connect(goToLineAction, &QAction::triggered, this, &MainWindow::showGoToLineDialog);
-
-    QMenu *viewMenu = menuBar()->addMenu("&View");
+    connect(goToLineAction, &QAction::triggered, this, &MainWindow::showGoToLineDialog);    QMenu *viewMenu = menuBar()->addMenu("&View");
     QMenu *themeMenu = viewMenu->addMenu("&Theme");
 
-    QActionGroup *themeActionGroup = new QActionGroup(this);
+    themeActionGroup = new QActionGroup(this);
 
     QAction *lightThemeAction = new QAction("&Light Theme", this);
     lightThemeAction->setCheckable(true);
@@ -734,16 +734,27 @@ void MainWindow::readSettings()
     
     // After loading settings, restore previous session
     fileOps->restoreSession();
-    
-    // Ensure word wrap menu is synced with the setting from QSettings
+      // Ensure word wrap menu is synced with the setting from QSettings
     QSettings settings2("NotepadX", "Editor");
     bool wordWrapEnabled = settings2.value("wordWrap", false).toBool();
+    bool darkThemeEnabled = settings2.value("darkTheme", false).toBool();
     
     // Find the word wrap action and update its state
     for (QAction* action : findChildren<QAction*>()) {
         if (action->text() == "&Word Wrap" && action->isCheckable()) {
             action->setChecked(wordWrapEnabled);
             break;
+        }
+    }
+    
+    // Update theme menu to match the current theme setting
+    if (themeActionGroup) {
+        for (QAction* action : themeActionGroup->actions()) {
+            if ((darkThemeEnabled && action->text() == "&Dark Theme") ||
+                (!darkThemeEnabled && action->text() == "&Light Theme")) {
+                action->setChecked(true);
+                break;
+            }
         }
     }
     
