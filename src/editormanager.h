@@ -39,13 +39,15 @@ public slots:
     
     // Status bar updates
     void updateStatusBar();
-    void updateCursorPosition();
-      // View options
+    void updateCursorPosition();    // View options
     void zoomIn();
     void zoomOut();
     void resetZoom();
     void toggleWordWrap();
     void updateWordWrapState(); // New method to ensure word wrap state is applied
+    
+    // Setters
+    void setLanguageActionGroup(QActionGroup *actionGroup) { m_languageActionGroup = actionGroup; }
     
 private:
     MainWindow *m_mainWindow;

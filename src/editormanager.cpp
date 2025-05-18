@@ -265,6 +265,24 @@ void EditorManager::toggleWordWrap()
 void EditorManager::updateLanguageMenu()
 {
     EditorWidget *editor = currentEditor();
+    if (!editor) {
+        return; // No editor open
+    }
+    
+    if (!m_languageActionGroup) {
+        // If the language action group isn't set yet, try to find it in the parent window
+        QList<QActionGroup*> actionGroups = m_mainWindow->findChildren<QActionGroup*>();
+        for (QActionGroup* group : actionGroups) {
+            // Check if this group has actions that match language names
+            QList<QAction*> actions = group->actions();
+            if (!actions.isEmpty() && actions.contains(group->checkedAction()) && 
+                (actions.first()->text() == "None" || actions.first()->text() == "Plain Text")) {
+                m_languageActionGroup = group;
+                break;
+            }
+        }
+    }
+    
     if (editor && m_languageActionGroup) {
         QString currentLang = editor->currentLanguage();
 

@@ -87,9 +87,12 @@ MainWindow::MainWindow(QWidget *parent)
         debugLogMessage("Creating file operations manager");
         fileOps = new FileOperations(this);
         debugLogMessage("File operations manager created");
-        
-        debugLogMessage("Creating editor manager");
+          debugLogMessage("Creating editor manager");
         editorMgr = new EditorManager(this);
+        // Share the language action group with the editor manager
+        if (languageActionGroup) {
+            editorMgr->setLanguageActionGroup(languageActionGroup);
+        }
         debugLogMessage("Editor manager created");
         
         debugLogMessage("Creating search manager");
@@ -360,10 +363,8 @@ void MainWindow::createMenus()
     wordWrapAction->setChecked(wordWrapEnabled);
     
     viewMenu->addAction(wordWrapAction);
-    connect(wordWrapAction, &QAction::triggered, this, &MainWindow::toggleWordWrap);
-
-    QMenu *languageMenu = menuBar()->addMenu("&Language");
-    QActionGroup *languageActionGroup = new QActionGroup(this);
+    connect(wordWrapAction, &QAction::triggered, this, &MainWindow::toggleWordWrap);    QMenu *languageMenu = menuBar()->addMenu("&Language");
+    languageActionGroup = new QActionGroup(this);
     connect(languageActionGroup, &QActionGroup::triggered, this, &MainWindow::languageSelected);
 
     // Get languages from the factory

@@ -81,11 +81,13 @@ private:
     QLabel *zoomLabel;
     QLabel *modifiedLabel;
     QLabel *filenameLabel;
-    
-    // Module classes that handle specific functionality
+      // Module classes that handle specific functionality
     FileOperations *fileOps;
     EditorManager *editorMgr;
     SearchManager *searchMgr;
+    
+    // UI components
+    QActionGroup *languageActionGroup;
     
     // UI setup methods
     void createMenus();
