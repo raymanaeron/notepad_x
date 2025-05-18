@@ -71,6 +71,18 @@ MainWindow::MainWindow(QWidget *parent)
         createStatusBar();
         debugLogMessage("Status bar created");
 
+        // Read settings for word wrap to update UI
+        QSettings settings("NotepadX", "Editor");
+        bool wordWrapEnabled = settings.value("wordWrap", false).toBool();
+        
+        // Update the Word Wrap menu item state to match the saved setting
+        for (QAction* action : findChildren<QAction*>()) {
+            if (action->text() == "&Word Wrap" && action->isCheckable()) {
+                action->setChecked(wordWrapEnabled);
+                break;
+            }
+        }
+        
         // Create module managers after creating UI elements
         debugLogMessage("Creating file operations manager");
         fileOps = new FileOperations(this);
@@ -341,7 +353,12 @@ void MainWindow::createMenus()
 
     QAction *wordWrapAction = new QAction("&Word Wrap", this);
     wordWrapAction->setCheckable(true);
-    wordWrapAction->setChecked(false); // Default setting, will be updated later
+    
+    // Read the word wrap setting from QSettings
+    QSettings settings("NotepadX", "Editor");
+    bool wordWrapEnabled = settings.value("wordWrap", false).toBool();
+    wordWrapAction->setChecked(wordWrapEnabled);
+    
     viewMenu->addAction(wordWrapAction);
     connect(wordWrapAction, &QAction::triggered, this, &MainWindow::toggleWordWrap);
 
@@ -712,11 +729,27 @@ void MainWindow::readSettings()
     {
         restoreState(state);
     }
-    
-    // The modules will read their own settings
+      // The modules will read their own settings
     
     // After loading settings, restore previous session
     fileOps->restoreSession();
+    
+    // Ensure word wrap menu is synced with the setting from QSettings
+    QSettings settings2("NotepadX", "Editor");
+    bool wordWrapEnabled = settings2.value("wordWrap", false).toBool();
+    
+    // Find the word wrap action and update its state
+    for (QAction* action : findChildren<QAction*>()) {
+        if (action->text() == "&Word Wrap" && action->isCheckable()) {
+            action->setChecked(wordWrapEnabled);
+            break;
+        }
+    }
+    
+    // Ensure the editor manager has the correct setting
+    if (editorMgr) {
+        QMetaObject::invokeMethod(editorMgr, "updateWordWrapState");
+    }
 }
 
 void MainWindow::writeSettings()

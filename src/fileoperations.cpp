@@ -120,6 +120,10 @@ EditorWidget* FileOperations::createEditor()
 {
     EditorWidget *editor = new EditorWidget(m_mainWindow);
 
+    // Get current word wrap setting from the shared settings
+    QSettings settings("NotepadX", "Editor");
+    m_isWordWrapEnabled = settings.value("wordWrap", false).toBool();
+    
     // Apply current word wrap setting
     editor->setWordWrapMode(m_isWordWrapEnabled ? QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap);
 
@@ -395,6 +399,11 @@ void FileOperations::restoreSession()
             }
         }
         
+        // Make sure we have the latest word wrap setting
+        m_isWordWrapEnabled = settings.value("wordWrap", false).toBool();
+        QTextOption::WrapMode mode = m_isWordWrapEnabled ? 
+            QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap;
+            
         for (int i = 0; i < size; ++i) {
             settings.setArrayIndex(i);
             QString filePath = settings.value("filePath").toString();
@@ -418,6 +427,9 @@ void FileOperations::restoreSession()
                 editor->setLanguage(language);
             }
             editor->setZoomLevel(zoomLevel);
+            
+            // Explicitly set word wrap mode
+            editor->setWordWrapMode(mode);
             
             // Add tab with proper title
             QString tabTitle;
@@ -465,4 +477,23 @@ void FileOperations::restoreSession()
     QMetaObject::invokeMethod(m_mainWindow, "connectEditorSignals");
     QMetaObject::invokeMethod(m_mainWindow, "updateLanguageMenu");
     QMetaObject::invokeMethod(m_mainWindow, "updateStatusBar");
+}
+
+void FileOperations::setWordWrapEnabled(bool enabled)
+{
+    // Update our local state
+    m_isWordWrapEnabled = enabled;
+    
+    // Apply the setting to all open editors
+    QTextOption::WrapMode mode = enabled ? 
+        QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap;
+    
+    for (int i = 0; i < m_tabWidget->count(); ++i) {
+        EditorWidget *editor = qobject_cast<EditorWidget *>(m_tabWidget->widget(i));
+        if (editor) {
+            editor->setWordWrapMode(mode);
+        }
+    }
+    
+    // We don't need to save the setting here as the EditorManager already did that
 }

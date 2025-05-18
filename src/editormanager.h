@@ -40,12 +40,12 @@ public slots:
     // Status bar updates
     void updateStatusBar();
     void updateCursorPosition();
-    
-    // View options
+      // View options
     void zoomIn();
     void zoomOut();
     void resetZoom();
     void toggleWordWrap();
+    void updateWordWrapState(); // New method to ensure word wrap state is applied
     
 private:
     MainWindow *m_mainWindow;

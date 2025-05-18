@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "editorwidget.h"
 #include "codeeditor.h"
+#include "fileoperations.h"
 #include "highlighting/highlighterfactory.h"
 #include <QTabWidget>
 #include <QSettings>
@@ -67,6 +68,22 @@ EditorManager::EditorManager(MainWindow *parent)
         if (action->text() == "&Word Wrap" && action->isCheckable()) {
             m_wordWrapAction = action;
             break;
+        }
+    }
+    
+    // Synchronize the word wrap checkbox with the loaded setting
+    if (m_wordWrapAction) {
+        m_wordWrapAction->setChecked(m_isWordWrapEnabled);
+    }
+    
+    // Apply word wrap setting to any existing editors
+    QTextOption::WrapMode mode = m_isWordWrapEnabled ? 
+        QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap;
+    
+    for (int i = 0; i < m_tabWidget->count(); ++i) {
+        EditorWidget *editor = qobject_cast<EditorWidget *>(m_tabWidget->widget(i));
+        if (editor) {
+            editor->setWordWrapMode(mode);
         }
     }
 }
@@ -218,8 +235,13 @@ void EditorManager::applyDarkTheme()
 void EditorManager::toggleWordWrap()
 {
     m_isWordWrapEnabled = !m_isWordWrapEnabled;
-    m_wordWrapAction->setChecked(m_isWordWrapEnabled);  // Update menu item state
     
+    // Update menu item state
+    if (m_wordWrapAction) {
+        m_wordWrapAction->setChecked(m_isWordWrapEnabled);
+    }
+    
+    // Apply word wrap setting to all open editors
     QTextOption::WrapMode mode = m_isWordWrapEnabled ? 
         QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap;
     
@@ -229,10 +251,15 @@ void EditorManager::toggleWordWrap()
             editor->setWordWrapMode(mode);
         }
     }
-    
-    // Save the setting
+      // Save the setting
     QSettings settings("NotepadX", "Editor");
     settings.setValue("wordWrap", m_isWordWrapEnabled);
+    
+    // Notify FileOperations about the change so it's consistent for new tabs
+    auto fileOps = m_mainWindow->findChild<FileOperations*>();
+    if (fileOps) {
+        fileOps->setWordWrapEnabled(m_isWordWrapEnabled);
+    }
 }
 
 void EditorManager::updateLanguageMenu()
@@ -421,5 +448,34 @@ void EditorManager::updateCursorPosition()
         int line = cursor.blockNumber() + 1;
         int column = cursor.columnNumber() + 1;
         m_lineColumnLabel->setText(QString("Line: %1, Column: %2").arg(line).arg(column));
+    }
+}
+
+void EditorManager::updateWordWrapState()
+{
+    // Read the current word wrap setting
+    QSettings settings("NotepadX", "Editor");
+    m_isWordWrapEnabled = settings.value("wordWrap", false).toBool();
+    
+    // Update the action state
+    if (m_wordWrapAction) {
+        m_wordWrapAction->setChecked(m_isWordWrapEnabled);
+    }
+    
+    // Apply word wrap setting to all open editors
+    QTextOption::WrapMode mode = m_isWordWrapEnabled ? 
+        QTextOption::WrapAtWordBoundaryOrAnywhere : QTextOption::NoWrap;
+    
+    for (int i = 0; i < m_tabWidget->count(); ++i) {
+        EditorWidget *editor = qobject_cast<EditorWidget *>(m_tabWidget->widget(i));
+        if (editor) {
+            editor->setWordWrapMode(mode);
+        }
+    }
+    
+    // Also notify FileOperations about the current setting
+    auto fileOps = m_mainWindow->findChild<FileOperations*>();
+    if (fileOps) {
+        fileOps->setWordWrapEnabled(m_isWordWrapEnabled);
     }
 }

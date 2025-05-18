@@ -9,6 +9,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QFontDatabase>
+#include <QSettings>
 
 EditorWidget::EditorWidget(QWidget *parent) : QWidget(parent), currentFilePath(""), usingDarkTheme(false)
 {
@@ -79,13 +80,12 @@ void EditorWidget::setupEditor()
     font.setPointSize(11); // Slightly larger for better readability
     
     textEditor->setFont(font);
-    
-    // Set tab width to 4 characters
+      // Set tab width to 4 characters
     QFontMetrics metrics(font);
     textEditor->setTabStopDistance(4 * metrics.horizontalAdvance(' '));
     
-    // Enable line wrapping
-    textEditor->setLineWrapMode(QPlainTextEdit::NoWrap);
+    // Note: Word wrap is set by FileOperations and EditorManager
+    // We don't set it here to avoid inconsistency
 }
 
 void EditorWidget::initEditor()
