@@ -5,6 +5,10 @@ curl -O https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain AppleRootCA-G3.cer 
 sudo security add-trusted-cert -d -r trustAsRoot -k /Library/Keychains/System.keychain AppleWWDRCAG4.cer
 
+# must install this
+https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer  
+
 # fix the dev id profile
 open the cert from the keychain
 expand trust

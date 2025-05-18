@@ -1,35 +1,35 @@
 {
   "logFormatVersion": 1,
-  "jobId": "f3ea8aa7-256c-4a7e-9e43-b0a1013e69a1",
+  "jobId": "9270586e-2cdc-4aed-b45f-d70745985bca",
   "status": "Accepted",
   "statusSummary": "Ready for distribution",
   "statusCode": 0,
   "archiveFilename": "NotepadX.zip",
-  "uploadDate": "2025-05-08T04:34:31.668Z",
-  "sha256": "e130b7a299f50df44c64b72558ee5e9885d4e8d8e38028c00aaf578c622b0a13",
+  "uploadDate": "2025-05-18T02:36:30.840Z",
+  "sha256": "fd2e4d326e6f3012d386ee4c164e44702a8004be8664b4c40c04d1d15093ecc8",
   "ticketContents": [
     {
-      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtSvg.framework/Versions/Current",
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqjpeg.dylib",
       "digestAlgorithm": "SHA-256",
-      "cdhash": "7443632901571e6caf7d6d2a9eb536a87f888906",
+      "cdhash": "861eb06cfabc18f016047f0294485d1955a1f209",
       "arch": "x86_64"
     },
     {
-      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtSvg.framework/Versions/Current",
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqjpeg.dylib",
       "digestAlgorithm": "SHA-256",
-      "cdhash": "f14a741052cbe925145cd6e43ca4f3672dfac50a",
+      "cdhash": "92c3f67a93afde6497029e0137ca97d7b769cd4c",
       "arch": "arm64"
     },
     {
-      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtWidgets.framework/Versions/Current",
+      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtGui.framework/Versions/Current",
       "digestAlgorithm": "SHA-256",
-      "cdhash": "5402d4998474ae20760d762c02daaae62a200d0d",
+      "cdhash": "af5b8810b70e9dc1aabd23aa240ee98dde41af1b",
       "arch": "x86_64"
     },
     {
-      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtWidgets.framework/Versions/Current",
+      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtGui.framework/Versions/Current",
       "digestAlgorithm": "SHA-256",
-      "cdhash": "e7471dcd3989dcc9fed74fc26c2e73a85abc7634",
+      "cdhash": "a5a9846ec4c6def926a20e7a6e310d6e276da171",
       "arch": "arm64"
     },
     {
@@ -47,79 +47,7 @@
     {
       "path": "NotepadX.zip/NotepadX.app",
       "digestAlgorithm": "SHA-256",
-      "cdhash": "fe494aaa4e19a92fef019035aad62bbbd6a651ac",
-      "arch": "arm64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/styles/libqmacstyle.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "dd648030cb77fce9ab03e4eadeb28f843aabbb57",
-      "arch": "x86_64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/styles/libqmacstyle.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "52f1f01021375d7b5639f425c3ff2ff83ceef8c7",
-      "arch": "arm64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqjpeg.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "861eb06cfabc18f016047f0294485d1955a1f209",
-      "arch": "x86_64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqjpeg.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "92c3f67a93afde6497029e0137ca97d7b769cd4c",
-      "arch": "arm64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/platforms/libqcocoa.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "a1ac73087c63b2b425ed75ab73e71ee53f3cfa77",
-      "arch": "x86_64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/platforms/libqcocoa.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "b196d7aa7762867dfa624388b6e25c5384f34041",
-      "arch": "arm64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtCore.framework/Versions/Current",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "4ef121527dcbaf5ac593cf0a57e852ffe6be8104",
-      "arch": "x86_64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtCore.framework/Versions/Current",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "efe6de26c0b906dc3175e52b88058343e8b7f6f0",
-      "arch": "arm64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqsvg.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "286e3c7580b2449be2de1c504a12fbfe56112fc2",
-      "arch": "x86_64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqsvg.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "7b4de9ec079aa6d6f834212d6078567151a1196f",
-      "arch": "arm64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/iconengines/libqsvgicon.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "1a533004d29a1cc8b71386427396c2c24e5fdd9f",
-      "arch": "x86_64"
-    },
-    {
-      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/iconengines/libqsvgicon.dylib",
-      "digestAlgorithm": "SHA-256",
-      "cdhash": "d5e0e7bc60c7b8f3e489768e5d2fca3975e40ab8",
+      "cdhash": "b4b8c4bffa4dfbeccc2e44eef2ce0a6968af60a7",
       "arch": "arm64"
     },
     {
@@ -135,6 +63,66 @@
       "arch": "arm64"
     },
     {
+      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtSvg.framework/Versions/Current",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "7443632901571e6caf7d6d2a9eb536a87f888906",
+      "arch": "x86_64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtSvg.framework/Versions/Current",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "f14a741052cbe925145cd6e43ca4f3672dfac50a",
+      "arch": "arm64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/styles/libqmacstyle.dylib",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "dd648030cb77fce9ab03e4eadeb28f843aabbb57",
+      "arch": "x86_64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/styles/libqmacstyle.dylib",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "52f1f01021375d7b5639f425c3ff2ff83ceef8c7",
+      "arch": "arm64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtWidgets.framework/Versions/Current",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "5402d4998474ae20760d762c02daaae62a200d0d",
+      "arch": "x86_64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtWidgets.framework/Versions/Current",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "e7471dcd3989dcc9fed74fc26c2e73a85abc7634",
+      "arch": "arm64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/platforms/libqcocoa.dylib",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "a1ac73087c63b2b425ed75ab73e71ee53f3cfa77",
+      "arch": "x86_64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/platforms/libqcocoa.dylib",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "b196d7aa7762867dfa624388b6e25c5384f34041",
+      "arch": "arm64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/iconengines/libqsvgicon.dylib",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "1a533004d29a1cc8b71386427396c2c24e5fdd9f",
+      "arch": "x86_64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/iconengines/libqsvgicon.dylib",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "d5e0e7bc60c7b8f3e489768e5d2fca3975e40ab8",
+      "arch": "arm64"
+    },
+    {
       "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqico.dylib",
       "digestAlgorithm": "SHA-256",
       "cdhash": "37ad44f8e88685e0411d27c36a0597bda0c8ae1c",
@@ -147,21 +135,33 @@
       "arch": "arm64"
     },
     {
-      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtGui.framework/Versions/Current",
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqsvg.dylib",
       "digestAlgorithm": "SHA-256",
-      "cdhash": "af5b8810b70e9dc1aabd23aa240ee98dde41af1b",
+      "cdhash": "286e3c7580b2449be2de1c504a12fbfe56112fc2",
       "arch": "x86_64"
     },
     {
-      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtGui.framework/Versions/Current",
+      "path": "NotepadX.zip/NotepadX.app/Contents/PlugIns/imageformats/libqsvg.dylib",
       "digestAlgorithm": "SHA-256",
-      "cdhash": "a5a9846ec4c6def926a20e7a6e310d6e276da171",
+      "cdhash": "7b4de9ec079aa6d6f834212d6078567151a1196f",
+      "arch": "arm64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtCore.framework/Versions/Current",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "4ef121527dcbaf5ac593cf0a57e852ffe6be8104",
+      "arch": "x86_64"
+    },
+    {
+      "path": "NotepadX.zip/NotepadX.app/Contents/Frameworks/QtCore.framework/Versions/Current",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "efe6de26c0b906dc3175e52b88058343e8b7f6f0",
       "arch": "arm64"
     },
     {
       "path": "NotepadX.zip/NotepadX.app/Contents/MacOS/NotepadX",
       "digestAlgorithm": "SHA-256",
-      "cdhash": "fe494aaa4e19a92fef019035aad62bbbd6a651ac",
+      "cdhash": "b4b8c4bffa4dfbeccc2e44eef2ce0a6968af60a7",
       "arch": "arm64"
     },
     {
